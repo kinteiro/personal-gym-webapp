@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Entrenador — Sesión de hoy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0E1110;
+    --bg-elevated: #161A19;
+    --bg-card: #1B201F;
+    --border: #2A3230;
+    --border-active: #3D4A47;
+    --text-primary: #F2F4F2;
+    --text-secondary: #9CA8A4;
+    --text-tertiary: #5E6A66;
+    --accent: #C9F031;
+    --accent-dim: #8A9C2A;
+    --accent-bg: rgba(201, 240, 49, 0.08);
+    --done: #4ADE80;
+    --done-bg: rgba(74, 222, 128, 0.1);
+    --warn: #F0A831;
+    --warn-bg: rgba(240, 168, 49, 0.08);
+    --danger: #F0584F;
+    --purple: #B89CF5;
+    --purple-bg: rgba(184, 156, 245, 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 5.5rem;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- Setup screen ---------- */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .setup-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+  .back-btn {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); cursor: pointer; font-size: 16px; flex-shrink: 0;
+  }
+  .back-btn:active { background: var(--bg-elevated); }
+  .setup-mark {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  #setup-screen h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 1.75rem;
+    line-height: 1.2;
+  }
+  .field-group { margin-bottom: 1.1rem; }
+  .field-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .field-group input {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    transition: border-color 0.15s;
+  }
+  .field-group input:focus { outline: none; border-color: var(--accent-dim); }
+  .field-group .hint { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; line-height: 1.4; }
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #0E1110;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary {
+    width: 100%;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    margin-top: 0.6rem;
+  }
+  .setup-error {
+    background: rgba(240, 88, 79, 0.1);
+    border: 1px solid rgba(240, 88, 79, 0.3);
+    color: #F08A83;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  /* ---------- Main app ---------- */
+  #app-screen { display: none; max-width: 480px; margin: 0 auto; padding: 1.25rem 1.1rem; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .topbar-mark { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .topbar h1 { font-size: 21px; font-weight: 700; margin-top: 3px; }
+  .topbar-date { font-size: 12px; color: var(--text-secondary); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .gear-btn {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); cursor: pointer; font-size: 16px;
+  }
+
+  .pending-banner {
+    background: var(--warn-bg);
+    border: 1px solid rgba(240, 168, 49, 0.35);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 1.25rem;
+    display: none;
+  }
+  .pending-banner .pb-title { font-size: 13px; font-weight: 600; color: var(--warn); margin-bottom: 8px; }
+  .pending-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; gap: 10px; }
+  .pending-row span { font-size: 13px; color: var(--text-primary); }
+  .pending-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .pending-actions button {
+    font-size: 11px; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .pa-yes { background: var(--done); color: #0E1110; }
+  .pa-no { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border) !important; }
+
+  .progress-track { height: 4px; background: var(--bg-card); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.35s ease; }
+
+  .loading-state, .error-state, .empty-state {
+    text-align: center; padding: 3rem 1rem; color: var(--text-secondary); font-size: 14px;
+  }
+  .error-state { color: #F08A83; }
+  .spinner {
+    width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .ex-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 0.7rem;
+    transition: border-color 0.2s, opacity 0.2s;
+  }
+  .ex-card.done { border-color: rgba(74, 222, 128, 0.4); opacity: 0.55; }
+  .ex-card.clickable { cursor: pointer; }
+  .ex-card.clickable:active { background: var(--bg-elevated); }
+
+  .ex-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .ex-name { font-size: 15.5px; font-weight: 600; line-height: 1.3; }
+  .ex-tipo { font-size: 10.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .done-check { color: var(--done); font-size: 20px; flex-shrink: 0; }
+  .chevron { color: var(--text-tertiary); font-size: 18px; flex-shrink: 0; }
+
+  .ex-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill { font-size: 11.5px; padding: 4px 9px; border-radius: 20px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .pill-base { background: var(--bg-elevated); color: var(--text-secondary); }
+  .pill-up { background: var(--done-bg); color: var(--done); }
+  .pill-warn { background: var(--warn-bg); color: var(--warn); }
+
+  .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .weight-row button {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-primary); font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .weight-display { font-size: 18px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; min-width: 64px; text-align: center; }
+
+  .series-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 7px; margin-bottom: 10px; }
+  .serie-btn {
+    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 4px; text-align: center; cursor: pointer; transition: all 0.15s;
+  }
+  .serie-btn .s-num { font-size: 10px; color: var(--text-tertiary); font-family: 'IBM Plex Mono', monospace; }
+  .serie-btn .s-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .serie-btn.filled { background: var(--done-bg); border-color: rgba(74, 222, 128, 0.4); }
+  .serie-btn.filled .s-val { color: var(--done); }
+
+  .rpe-row { display: flex; gap: 4px; margin-bottom: 4px; }
+  .rpe-btn {
+    flex: 1; text-align: center; padding: 7px 0; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-secondary); font-size: 12px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+  }
+  .rpe-btn.sel { background: var(--accent-bg); border-color: var(--accent-dim); color: var(--accent); }
+
+  .hist-note { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; font-family: 'IBM Plex Mono', monospace; }
+
+  .session-footer { margin-top: 1.5rem; }
+  .notes-area {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; color: var(--text-primary); font-size: 13px; font-family: 'Space Grotesk', sans-serif;
+    resize: none; margin-bottom: 0.9rem;
+  }
+  .notes-area::placeholder { color: var(--text-tertiary); }
+
+  .toast {
+    position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--accent); color: #0E1110; padding: 12px 22px; border-radius: 30px;
+    font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; pointer-events: none;
+    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error-toast { background: var(--danger); color: #fff; }
+
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-elevated); border-top: 1px solid var(--border);
+    display: flex; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+    max-width: 480px; margin: 0 auto; z-index: 40;
+  }
+  .nav-btn {
+    flex: 1; background: none; border: none; color: var(--text-tertiary);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .nav-btn .nav-icon { font-size: 18px; }
+  .nav-btn.active { color: var(--accent); }
+
+  /* ---------- Progress tab ---------- */
+  #progress-screen { display: none; }
+  .ai-card {
+    background: var(--purple-bg); border: 1px solid rgba(184, 156, 245, 0.35);
+    border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1.25rem;
+  }
+  .ai-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .ai-card-title { font-size: 13px; font-weight: 700; color: var(--purple); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ai-btn {
+    background: var(--purple); color: #0E1110; border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .ai-btn:disabled { opacity: 0.5; }
+  .ai-text { font-size: 13.5px; line-height: 1.55; color: var(--text-primary); white-space: pre-wrap; }
+  .ai-placeholder { font-size: 13px; color: var(--text-tertiary); line-height: 1.5; }
+
+  .progress-list-item {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .progress-list-item:active { background: var(--bg-elevated); }
+  .pli-name { font-size: 14px; font-weight: 600; }
+  .pli-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+  .pli-delta { font-size: 13px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .pli-delta.pos { color: var(--done); }
+  .pli-delta.neutral { color: var(--text-tertiary); }
+
+  .detail-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 60; overflow-y: auto;
+    display: none;
+  }
+  .detail-inner { max-width: 480px; margin: 0 auto; padding: 1.25rem 1.1rem 3rem; }
+  .detail-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+  .detail-topbar h2 { font-size: 18px; font-weight: 700; }
+  .hist-table { width: 100%; border-collapse: collapse; }
+  .hist-table th {
+    text-align: left; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;
+    letter-spacing: 0.05em; font-family: 'IBM Plex Mono', monospace; padding: 0 8px 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .hist-table td {
+    font-size: 13.5px; padding: 10px 8px 10px 0; border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .hist-table td.rpe-cell { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<!-- ============ SETUP SCREEN ============ -->
+<div id="setup-screen">
+  <div class="setup-topbar" id="setup-back-row" style="display:none;">
+    <button class="back-btn" id="btn-back-setup">←</button>
+  </div>
+  <div class="setup-mark">// Entrenador personal</div>
+  <h1>Conecta tu backend para empezar</h1>
+
+  <div class="field-group">
+    <label>URL base de la function app</label>
+    <input type="text" id="input-base-url" placeholder="https://personalgymtoolsdmq.azurewebsites.net/api">
+    <div class="hint">Sin barra al final. Ej: https://personalgymtoolsdmq.azurewebsites.net/api</div>
+  </div>
+
+  <div class="field-group">
+    <label>Function key (host key)</label>
+    <input type="password" id="input-function-key" placeholder="código de la host key">
+    <div class="hint">Se guarda solo en este navegador (localStorage), nunca se envía a ningún sitio salvo tu propia API.</div>
+  </div>
+
+  <button class="btn-primary" id="btn-connect">Conectar y cargar sesión</button>
+  <div class="setup-error" id="setup-error"></div>
+</div>
+
+<!-- ============ APP SCREEN (HOY) ============ -->
+<div id="app-screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-mark">Full Body A</div>
+      <h1>Sesión de hoy</h1>
+      <div class="topbar-date mono" id="today-label"></div>
+    </div>
+    <button class="gear-btn" id="btn-settings" aria-label="Configuración">⚙</button>
+  </div>
+
+  <div class="pending-banner" id="pending-banner">
+    <div class="pb-title">⚠ Asistencia sin confirmar</div>
+    <div id="pending-list"></div>
+  </div>
+
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div id="content-area">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Cargando sesión desde Notion...
+    </div>
+  </div>
+
+  <div class="session-footer" id="session-footer" style="display:none;">
+    <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas de la sesión (sueño, energía, cómo fue)..."></textarea>
+    <button class="btn-primary" id="btn-save" disabled>Guardar sesión completa</button>
+  </div>
+</div>
+
+<!-- ============ PROGRESS SCREEN ============ -->
+<div id="progress-screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-mark">Histórico</div>
+      <h1>Progreso</h1>
+    </div>
+    <button class="gear-btn" id="btn-settings-2" aria-label="Configuración">⚙</button>
+  </div>
+
+  <div class="ai-card">
+    <div class="ai-card-header">
+      <span class="ai-card-title">✦ Análisis IA</span>
+      <button class="ai-btn" id="btn-analyze">Generar</button>
+    </div>
+    <div class="ai-placeholder" id="ai-content">Pulsa "Generar" para un resumen de cómo va tu progreso reciente. Hazlo cada 2-4 semanas, no en cada sesión.</div>
+  </div>
+
+  <div id="progress-list-area">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Cargando ejercicios...
+    </div>
+  </div>
+</div>
+
+<!-- ============ DETAIL OVERLAY ============ -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-inner">
+    <div class="detail-topbar">
+      <button class="back-btn" id="btn-close-detail">←</button>
+      <h2 id="detail-title">Ejercicio</h2>
+    </div>
+    <div id="detail-content">
+      <div class="loading-state"><div class="spinner"></div>Cargando historial...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BOTTOM NAV ============ -->
+<div class="bottom-nav" id="bottom-nav" style="display:none;">
+  <button class="nav-btn active" id="nav-hoy"><span class="nav-icon">●</span>Hoy</button>
+  <button class="nav-btn" id="nav-progreso"><span class="nav-icon">▲</span>Progreso</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY_URL = 'gym_api_base_url';
+const STORAGE_KEY_CODE = 'gym_api_function_key';
+
+let API_BASE = '';
+let API_CODE = '';
+let sesionData = null;
+let estadoEjercicios = [];
+let cameFromSettingsWithData = false;
+
+// ---------- Setup flow ----------
+function loadStoredCredentials() {
+  API_BASE = localStorage.getItem(STORAGE_KEY_URL) || '';
+  API_CODE = localStorage.getItem(STORAGE_KEY_CODE) || '';
+  return API_BASE && API_CODE;
+}
+
+function showSetup(opts = {}) {
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('progress-screen').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('input-base-url').value = API_BASE;
+
+  const backRow = document.getElementById('setup-back-row');
+  backRow.style.display = (API_BASE && API_CODE) ? 'flex' : 'none';
+
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+  if (opts.error) {
+    errEl.textContent = opts.error;
+    errEl.style.display = 'block';
+  }
+}
+
+function showApp(tab) {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'flex';
+  setActiveTab(tab || 'hoy');
+}
+
+function setActiveTab(tab) {
+  const appScreen = document.getElementById('app-screen');
+  const progressScreen = document.getElementById('progress-screen');
+  const navHoy = document.getElementById('nav-hoy');
+  const navProgreso = document.getElementById('nav-progreso');
+
+  if (tab === 'progreso') {
+    appScreen.style.display = 'none';
+    progressScreen.style.display = 'block';
+    navHoy.classList.remove('active');
+    navProgreso.classList.add('active');
+    if (!progressListLoaded) cargarListaProgreso();
+  } else {
+    appScreen.style.display = 'block';
+    progressScreen.style.display = 'none';
+    navHoy.classList.add('active');
+    navProgreso.classList.remove('active');
+  }
+}
+
+document.getElementById('btn-connect').addEventListener('click', async () => {
+  const url = document.getElementById('input-base-url').value.trim().replace(/\/$/, '');
+  const code = document.getElementById('input-function-key').value.trim();
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+
+  if (!url || !code) {
+    errEl.textContent = 'Rellena ambos campos.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  API_BASE = url;
+  API_CODE = code;
+  localStorage.setItem(STORAGE_KEY_URL, url);
+  localStorage.setItem(STORAGE_KEY_CODE, code);
+
+  showApp('hoy');
+  await cargarSesion();
+});
+
+document.getElementById('btn-settings').addEventListener('click', () => showSetup());
+document.getElementById('btn-settings-2').addEventListener('click', () => showSetup());
+document.getElementById('btn-back-setup').addEventListener('click', () => {
+  showApp('hoy');
+});
+
+document.getElementById('nav-hoy').addEventListener('click', () => setActiveTab('hoy'));
+document.getElementById('nav-progreso').addEventListener('click', () => setActiveTab('progreso'));
+
+// ---------- API helper ----------
+async function apiCall(path, options = {}) {
+  const separator = path.includes('?') ? '&' : '?';
+  const url = `${API_BASE}${path}${separator}code=${encodeURIComponent(API_CODE)}`;
+  const response = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`${response.status}: ${text || 'Error de conexión con la API'}`);
+  }
+  return response.json();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error-toast' : '');
+  setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+// ---------- HOY: load session ----------
+async function cargarSesion() {
+  const contentArea = document.getElementById('content-area');
+  const footer = document.getElementById('session-footer');
+  footer.style.display = 'none';
+
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const hoy = new Date();
+  document.getElementById('today-label').textContent = `${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+
+  try {
+    sesionData = await apiCall('/programar_sesion');
+    renderPendingBanner(sesionData.asistencia_pendiente_confirmar || []);
+    estadoEjercicios = sesionData.ejercicios.map(ex => ({
+      seriesDone: [],
+      pesoActual: ex.peso_recomendado || 0,
+      rpeReal: null,
+    }));
+    renderEjercicios();
+    footer.style.display = 'block';
+  } catch (err) {
+    contentArea.innerHTML = `
+      <div class="error-state">
+        No se pudo cargar la sesión.<br>
+        <span class="mono" style="font-size:12px;">${escapeHtml(err.message)}</span><br><br>
+        Revisa la URL y la function key en ⚙
+      </div>`;
+  }
+}
+
+function renderPendingBanner(pendientes) {
+  const banner = document.getElementById('pending-banner');
+  const list = document.getElementById('pending-list');
+  if (!pendientes.length) {
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = 'block';
+  list.innerHTML = pendientes.map(p => `
+    <div class="pending-row">
+      <span>${escapeHtml(p.sesion)} — ${p.fecha}</span>
+      <div class="pending-actions">
+        <button class="pa-yes" onclick="confirmarAsistencia('${p.sesion_id}', true, this)">Sí fui</button>
+        <button class="pa-no" onclick="confirmarAsistencia('${p.sesion_id}', false, this)">No fui</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function confirmarAsistencia(sesionId, asistio, btnEl) {
+  try {
+    await apiCall('/confirmar_asistencia', {
+      method: 'POST',
+      body: JSON.stringify({ sesion_id: sesionId, asistio }),
+    });
+    const row = btnEl.closest('.pending-row');
+    row.style.opacity = '0.4';
+    row.style.pointerEvents = 'none';
+    showToast(asistio ? 'Asistencia confirmada' : 'Marcado como no asistido');
+  } catch (err) {
+    showToast('Error al confirmar: ' + err.message, true);
+  }
+}
+
+function renderEjercicios() {
+  const container = document.getElementById('content-area');
+  const ejercicios = sesionData.ejercicios;
+
+  const totalSeries = ejercicios.reduce((a, e) => a + e.series, 0);
+  const seriesDone = estadoEjercicios.reduce((a, s) => a + s.seriesDone.length, 0);
+  document.getElementById('progress-fill').style.width = Math.round((seriesDone / totalSeries) * 100) + '%';
+
+  const allDone = estadoEjercicios.every((s, i) => s.seriesDone.length >= ejercicios[i].series);
+  document.getElementById('btn-save').disabled = !allDone;
+
+  container.innerHTML = ejercicios.map((ex, i) => {
+    const s = estadoEjercicios[i];
+    const done = s.seriesDone.length >= ex.series;
+    const isCompuesto = ex.tipo === 'Compuesto';
+    const incremento = isCompuesto ? 2.5 : 1.25;
+
+    const pillClass = ex.cambio && ex.cambio.startsWith('⬆') ? 'pill-up' : (ex.cambio === '⚠️ calibración' ? 'pill-warn' : 'pill-base');
+
+    const serieBtns = Array.from({ length: ex.series }, (_, si) => {
+      const isDone = s.seriesDone.includes(si);
+      return `<div class="serie-btn ${isDone ? 'filled' : ''}" onclick="toggleSerie(${i}, ${si})">
+        <div class="s-num">S${si + 1}</div>
+        <div class="s-val">${isDone ? '✓' : ex.reps}</div>
+      </div>`;
+    }).join('');
+
+    const rpeOpts = [6, 7, 8, 9, 10].map(r =>
+      `<div class="rpe-btn ${s.rpeReal === r ? 'sel' : ''}" onclick="setRPE(${i},${r})">${r}</div>`
+    ).join('');
+
+    const histNote = ex.historial_reciente && ex.historial_reciente.length
+      ? `<div class="hist-note">Última: ${ex.historial_reciente[0].peso}kg × ${ex.historial_reciente[0].reps} @ RPE ${ex.historial_reciente[0].rpe ?? '–'}</div>`
+      : `<div class="hist-note">Sin historial todavía</div>`;
+
+    return `<div class="ex-card ${done ? 'done' : ''}">
+      <div class="ex-top">
+        <div>
+          <div class="ex-name">${escapeHtml(ex.ejercicio)}</div>
+          <div class="ex-tipo">${ex.tipo}</div>
+        </div>
+        ${done ? '<span class="done-check">✓</span>' : ''}
+      </div>
+      <div class="ex-meta">
+        <span class="pill pill-base">${ex.series}×${ex.reps}</span>
+        <span class="pill ${pillClass}">${ex.cambio}</span>
+        <span class="pill pill-base">RPE obj. ${ex.rpe_objetivo}</span>
+      </div>
+      <div class="weight-row">
+        <button onclick="ajustarPeso(${i}, -${incremento})">−</button>
+        <div class="weight-display">${s.pesoActual} kg</div>
+        <button onclick="ajustarPeso(${i}, ${incremento})">+</button>
+      </div>
+      <div class="series-grid">${serieBtns}</div>
+      <div class="rpe-row">${rpeOpts}</div>
+      ${histNote}
+    </div>`;
+  }).join('');
+}
+
+function toggleSerie(i, si) {
+  const idx = estadoEjercicios[i].seriesDone.indexOf(si);
+  if (idx >= 0) estadoEjercicios[i].seriesDone.splice(idx, 1);
+  else estadoEjercicios[i].seriesDone.push(si);
+  renderEjercicios();
+}
+
+function ajustarPeso(i, delta) {
+  estadoEjercicios[i].pesoActual = Math.max(0, parseFloat((estadoEjercicios[i].pesoActual + delta).toFixed(2)));
+  renderEjercicios();
+}
+
+function setRPE(i, r) {
+  estadoEjercicios[i].rpeReal = estadoEjercicios[i].rpeReal === r ? null : r;
+  renderEjercicios();
+}
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const ejercicios = sesionData.ejercicios.map((ex, i) => ({
+    biblioteca_id: ex.biblioteca_id,
+    ejercicio: ex.ejercicio,
+    series: ex.series,
+    reps: estadoEjercicios[i].seriesDone.length,
+    peso: estadoEjercicios[i].pesoActual,
+    rpe: estadoEjercicios[i].rpeReal,
+  }));
+
+  const payload = {
+    sesion: 'Full Body A',
+    fecha: new Date().toISOString().slice(0, 10),
+    tipo: 'Gym - Full body',
+    notas: document.getElementById('session-notes').value,
+    asistio: true,
+    ejercicios,
+  };
+
+  try {
+    const result = await apiCall('/registrar_sesion', { method: 'POST', body: JSON.stringify(payload) });
+    showToast(`Sesión guardada — ${result.registros_creados} ejercicios registrados`);
+    btn.textContent = 'Guardado ✓';
+
+    for (let i = 0; i < ejercicios.length; i++) {
+      if (sesionData.ejercicios[i].cambio && sesionData.ejercicios[i].cambio.startsWith('⬆')) {
+        await apiCall('/actualizar_peso', {
+          method: 'POST',
+          body: JSON.stringify({ biblioteca_id: ejercicios[i].biblioteca_id, peso: ejercicios[i].peso }),
+        }).catch(() => {});
+      }
+    }
+    progressListLoaded = false; // fuerza recarga de progreso con datos nuevos
+  } catch (err) {
+    showToast('Error al guardar: ' + err.message, true);
+    btn.disabled = false;
+    btn.textContent = 'Guardar sesión completa';
+  }
+});
+
+// ---------- PROGRESO tab ----------
+let progressListLoaded = false;
+
+async function cargarListaProgreso() {
+  const area = document.getElementById('progress-list-area');
+  area.innerHTML = `<div class="loading-state"><div class="spinner"></div>Cargando ejercicios...</div>`;
+
+  // Reutilizamos la lista de ejercicios del Full Body A ya cargada en /programar_sesion,
+  // que trae biblioteca_id — así no hay que mantener otra lista por separado.
+  if (!sesionData) {
+    try { sesionData = await apiCall('/programar_sesion'); }
+    catch (err) {
+      area.innerHTML = `<div class="error-state">No se pudo cargar la lista de ejercicios.</div>`;
+      return;
+    }
+  }
+
+  area.innerHTML = sesionData.ejercicios.map(ex => {
+    const hist = ex.historial_reciente || [];
+    let deltaHtml = '<span class="pli-delta neutral">—</span>';
+    if (hist.length >= 2) {
+      const delta = hist[0].peso - hist[hist.length - 1].peso;
+      const sign = delta > 0 ? '+' : '';
+      deltaHtml = `<span class="pli-delta ${delta > 0 ? 'pos' : 'neutral'}">${sign}${delta.toFixed(1)}kg</span>`;
+    }
+    return `<div class="progress-list-item" onclick="abrirDetalleProgreso('${ex.biblioteca_id}', '${escapeHtml(ex.ejercicio)}')">
+      <div>
+        <div class="pli-name">${escapeHtml(ex.ejercicio)}</div>
+        <div class="pli-sub">${hist.length} sesión${hist.length === 1 ? '' : 'es'} registrada${hist.length === 1 ? '' : 's'}</div>
+      </div>
+      ${deltaHtml}
+    </div>`;
+  }).join('');
+
+  progressListLoaded = true;
+}
+
+async function abrirDetalleProgreso(bibliotecaId, nombre) {
+  const overlay = document.getElementById('detail-overlay');
+  const content = document.getElementById('detail-content');
+  document.getElementById('detail-title').textContent = nombre;
+  overlay.style.display = 'block';
+  content.innerHTML = `<div class="loading-state"><div class="spinner"></div>Cargando historial...</div>`;
+
+  try {
+    const data = await apiCall(`/progreso?biblioteca_id=${encodeURIComponent(bibliotecaId)}&limite=15`);
+    if (!data.historial || !data.historial.length) {
+      content.innerHTML = `<div class="empty-state">Sin registros todavía para este ejercicio.</div>`;
+      return;
+    }
+
+    const progresoLine = data.progreso_kg_en_periodo != null
+      ? `<div class="hist-note" style="margin-bottom:1rem;font-size:13px;">Progreso en el periodo: <strong style="color:var(--done)">${data.progreso_kg_en_periodo > 0 ? '+' : ''}${data.progreso_kg_en_periodo}kg</strong> en ${data.sesiones_consideradas} sesiones</div>`
+      : '';
+
+    const rows = data.historial.map((r, i) => `
+      <tr>
+        <td class="mono">${data.historial.length - i}</td>
+        <td>${r.peso ?? '–'} kg</td>
+        <td>${r.reps ?? '–'}</td>
+        <td class="rpe-cell">${r.rpe ?? '–'}</td>
+      </tr>
+    `).join('');
+
+    content.innerHTML = `
+      ${progresoLine}
+      <table class="hist-table">
+        <thead><tr><th>#</th><th>Peso</th><th>Reps</th><th>RPE</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  } catch (err) {
+    content.innerHTML = `<div class="error-state">Error al cargar historial: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+document.getElementById('btn-close-detail').addEventListener('click', () => {
+  document.getElementById('detail-overlay').style.display = 'none';
+});
+
+document.getElementById('btn-analyze').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-analyze');
+  const content = document.getElementById('ai-content');
+  btn.disabled = true;
+  btn.textContent = 'Pensando...';
+  content.textContent = 'Generando análisis con IA — puede tardar unos segundos...';
+  content.className = 'ai-placeholder';
+
+  try {
+    const data = await apiCall('/analisis_progreso');
+    content.textContent = data.analisis;
+    content.className = 'ai-text';
+  } catch (err) {
+    content.textContent = 'Error al generar el análisis: ' + err.message;
+    content.className = 'ai-placeholder';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Regenerar';
+  }
+});
+
+// ---------- Init ----------
+(function init() {
+  if (loadStoredCredentials()) {
+    showApp('hoy');
+    cargarSesion();
+  } else {
+    showSetup();
+  }
+})();
+</script>
+</body>
+</html>
