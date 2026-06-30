@@ -4,423 +4,364 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Entrenador — Sesión de hoy</title>
-
-<!-- iOS: comportamiento de app standalone -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Entrenador">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-<!-- Theme color de la barra del sistema -->
 <meta name="theme-color" content="#0E1110">
-
-<!-- Favicon estándar -->
 <link rel="icon" type="image/svg+xml" href="icon-512.svg">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root {
+  --bg:#0E1110;--bg-el:#161A19;--bg-card:#1B201F;--border:#2A3230;
+  --txt:#F2F4F2;--txt2:#9CA8A4;--txt3:#5E6A66;
+  --acc:#C9F031;--acc-dim:#8A9C2A;--acc-bg:rgba(201,240,49,.08);
+  --done:#4ADE80;--done-bg:rgba(74,222,128,.1);
+  --warn:#F0A831;--warn-bg:rgba(240,168,49,.08);
+  --danger:#F0584F;--purple:#B89CF5;--purple-bg:rgba(184,156,245,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;min-height:100vh;padding-bottom:5.5rem}
+.mono{font-family:'IBM Plex Mono',monospace}
 
-  :root {
-    --bg: #0E1110;
-    --bg-elevated: #161A19;
-    --bg-card: #1B201F;
-    --border: #2A3230;
-    --border-active: #3D4A47;
-    --text-primary: #F2F4F2;
-    --text-secondary: #9CA8A4;
-    --text-tertiary: #5E6A66;
-    --accent: #C9F031;
-    --accent-dim: #8A9C2A;
-    --accent-bg: rgba(201, 240, 49, 0.08);
-    --done: #4ADE80;
-    --done-bg: rgba(74, 222, 128, 0.1);
-    --warn: #F0A831;
-    --warn-bg: rgba(240, 168, 49, 0.08);
-    --danger: #F0584F;
-    --purple: #B89CF5;
-    --purple-bg: rgba(184, 156, 245, 0.1);
-  }
+/* ---- Setup ---- */
+#setup-screen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;max-width:420px;margin:0 auto}
+.setup-topbar{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.back-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--txt2);cursor:pointer;font-size:16px;flex-shrink:0}
+.setup-mark{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--acc);text-transform:uppercase}
+#setup-screen h1{font-size:24px;font-weight:700;margin-bottom:1.75rem;line-height:1.2}
+.field-group{margin-bottom:1.1rem}
+.field-group label{display:block;font-size:12px;color:var(--txt2);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+.field-group input{width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--txt);font-size:14px;font-family:'IBM Plex Mono',monospace;transition:border-color .15s}
+.field-group input:focus{outline:none;border-color:var(--acc-dim)}
+.field-group .hint{font-size:11px;color:var(--txt3);margin-top:6px;line-height:1.4}
+.btn-primary{width:100%;background:var(--acc);color:#0E1110;border:none;border-radius:10px;padding:15px;font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;margin-top:.5rem;transition:opacity .15s,transform .1s}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{width:100%;background:rgba(240,88,79,.12);color:var(--danger);border:1px solid rgba(240,88,79,.3);border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;margin-top:.6rem}
+.setup-error{background:rgba(240,88,79,.1);border:1px solid rgba(240,88,79,.3);color:#F08A83;padding:10px 12px;border-radius:8px;font-size:13px;margin-top:1rem;display:none}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* ---- App ---- */
+#app-screen{display:none;max-width:480px;margin:0 auto;padding:1.25rem 1.1rem}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem}
+.topbar-mark{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase}
+.topbar h1{font-size:21px;font-weight:700;margin-top:3px}
+.topbar-date{font-size:12px;color:var(--txt2);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.topbar-actions{display:flex;gap:8px;flex-shrink:0}
+.icon-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--txt2);cursor:pointer;font-size:16px}
 
-  body {
-    background: var(--bg);
-    color: var(--text-primary);
-    font-family: 'Space Grotesk', sans-serif;
-    min-height: 100vh;
-    padding-bottom: 5.5rem;
-  }
+/* ---- Type selection ---- */
+#type-screen{display:none;max-width:480px;margin:0 auto;padding:1.25rem 1.1rem}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem}
+.type-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1rem;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.type-card:active{background:var(--bg-el)}
+.type-card.selected{border-color:var(--acc);background:var(--acc-bg)}
+.type-icon{font-size:28px}
+.type-label{font-size:14px;font-weight:600;text-align:center}
+.type-sub{font-size:11px;color:var(--txt3);text-align:center;font-family:'IBM Plex Mono',monospace}
+.session-picker{margin-top:1.25rem;display:none}
+.session-option{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}
+.session-option:active{background:var(--bg-el)}
+.session-option.selected{border-color:var(--acc);background:var(--acc-bg)}
+.session-option-name{font-size:14px;font-weight:600}
+.session-option-sub{font-size:11px;color:var(--txt3);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.info-btn{background:var(--bg-el);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:14px;cursor:pointer;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+.info-btn:active{background:var(--border)}
+.info-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;display:none;align-items:flex-end}
+.info-sheet{background:var(--bg-card);border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;max-height:80vh;overflow-y:auto;width:100%;max-width:480px;margin:0 auto}
+.info-sheet-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.info-sheet-sub{font-size:12px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:1.25rem}
+.info-ex-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.info-ex-row:last-child{border-bottom:none}
+.info-ex-name{font-size:13.5px;font-weight:600}
+.info-ex-tipo{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.info-ex-meta{font-size:12px;color:var(--txt2);font-family:'IBM Plex Mono',monospace;text-align:right}
+.info-close{width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--txt2);font-size:14px;font-weight:600;cursor:pointer;margin-top:1.25rem;font-family:'Space Grotesk',sans-serif}
+.sesiones-mgmt{margin-top:1.5rem}
+.sesiones-mgmt-title{font-size:12px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.sesion-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.sesion-row-name{font-size:14px;font-weight:600}
+.sesion-row-sub{font-size:11px;color:var(--txt3);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.toggle-btn{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-btn input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:background .2s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle-btn input:checked+.toggle-slider{background:var(--acc)}
+.toggle-btn input:checked+.toggle-slider:before{transform:translateX(20px)}
 
-  .mono { font-family: 'IBM Plex Mono', monospace; }
+/* ---- Cardio/simple flow ---- */
+#simple-screen{display:none;max-width:480px;margin:0 auto;padding:1.25rem 1.1rem}
+.simple-field{margin-bottom:1rem}
+.simple-field label{display:block;font-size:12px;color:var(--txt2);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+.simple-input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--txt);font-size:15px;font-family:'IBM Plex Mono',monospace}
+.simple-input:focus{outline:none;border-color:var(--acc-dim)}
 
-  /* ---------- Setup screen ---------- */
-  #setup-screen {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2rem 1.5rem;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  .setup-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
-  .back-btn {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary); cursor: pointer; font-size: 16px; flex-shrink: 0;
-  }
-  .back-btn:active { background: var(--bg-elevated); }
-  .setup-mark {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    color: var(--accent);
-    text-transform: uppercase;
-  }
-  #setup-screen h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 1.75rem;
-    line-height: 1.2;
-  }
-  .field-group { margin-bottom: 1.1rem; }
-  .field-group label {
-    display: block;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .field-group input {
-    width: 100%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px 14px;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    transition: border-color 0.15s;
-  }
-  .field-group input:focus { outline: none; border-color: var(--accent-dim); }
-  .field-group .hint { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; line-height: 1.4; }
-  .btn-primary {
-    width: 100%;
-    background: var(--accent);
-    color: #0E1110;
-    border: none;
-    border-radius: 10px;
-    padding: 15px;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: 'Space Grotesk', sans-serif;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-secondary {
-    width: 100%;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: 'Space Grotesk', sans-serif;
-    cursor: pointer;
-    margin-top: 0.6rem;
-  }
-  .setup-error {
-    background: rgba(240, 88, 79, 0.1);
-    border: 1px solid rgba(240, 88, 79, 0.3);
-    color: #F08A83;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-top: 1rem;
-    display: none;
-  }
+/* ---- Pending / progress / cards ---- */
+.pending-banner{background:var(--warn-bg);border:1px solid rgba(240,168,49,.35);border-radius:12px;padding:14px 16px;margin-bottom:1.25rem;display:none}
+.pending-banner .pb-title{font-size:13px;font-weight:600;color:var(--warn);margin-bottom:8px}
+.pending-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;gap:10px}
+.pending-row span{font-size:13px;color:var(--txt)}
+.pending-actions{display:flex;gap:6px;flex-shrink:0}
+.pending-actions button{font-size:11px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.pa-yes{background:var(--done);color:#0E1110}
+.pa-no{background:var(--bg-el);color:var(--txt2);border:1px solid var(--border)!important}
+.resume-banner{background:var(--acc-bg);border:1px solid rgba(201,240,49,.3);border-radius:12px;padding:14px 16px;margin-bottom:1.25rem;display:none}
+.resume-banner .rb-title{font-size:13px;font-weight:600;color:var(--acc);margin-bottom:10px}
+.resume-actions{display:flex;gap:8px}
+.resume-actions button{flex:1;padding:10px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Space Grotesk',sans-serif}
+.rb-continue{background:var(--acc);color:#0E1110}
+.rb-discard{background:var(--bg-el);color:var(--txt2);border:1px solid var(--border)!important}
+.progress-track{height:4px;background:var(--bg-card);border-radius:4px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--acc);width:0%;transition:width .35s ease}
+.loading-state,.error-state,.empty-state{text-align:center;padding:3rem 1rem;color:var(--txt2);font-size:14px}
+.error-state{color:#F08A83}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--acc);border-radius:50%;margin:0 auto 1rem;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ex-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:.7rem;transition:border-color .2s,opacity .2s}
+.ex-card.done{border-color:rgba(74,222,128,.4);opacity:.55}
+.ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ex-name{font-size:15.5px;font-weight:600;line-height:1.3}
+.ex-tipo{font-size:10.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.done-check{color:var(--done);font-size:20px;flex-shrink:0}
+.ex-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pill{font-size:11.5px;padding:4px 9px;border-radius:20px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.pill-base{background:var(--bg-el);color:var(--txt2)}
+.pill-up{background:var(--done-bg);color:var(--done)}
+.pill-warn{background:var(--warn-bg);color:var(--warn)}
+.weight-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.weight-row button{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg-el);color:var(--txt);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.weight-display{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace;min-width:64px;text-align:center}
+.series-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:7px;margin-bottom:10px}
+.serie-btn{background:var(--bg-el);border:1px solid var(--border);border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.serie-btn .s-num{font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace}
+.serie-btn .s-val{font-size:13px;font-weight:600;margin-top:2px}
+.serie-btn.filled{background:var(--done-bg);border-color:rgba(74,222,128,.4)}
+.serie-btn.filled .s-val{color:var(--done)}
+.rpe-row{display:flex;gap:4px;margin-bottom:4px}
+.rpe-btn{flex:1;text-align:center;padding:7px 0;border-radius:7px;border:1px solid var(--border);background:var(--bg-el);color:var(--txt2);font-size:12px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.rpe-btn.sel{background:var(--acc-bg);border-color:var(--acc-dim);color:var(--acc)}
+.hist-note{font-size:11px;color:var(--txt3);margin-top:8px;font-family:'IBM Plex Mono',monospace}
+.session-footer{margin-top:1.5rem}
+.notes-area{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--txt);font-size:13px;font-family:'Space Grotesk',sans-serif;resize:none;margin-bottom:.9rem}
+.notes-area::placeholder{color:var(--txt3)}
 
-  /* ---------- Main app ---------- */
-  #app-screen { display: none; max-width: 480px; margin: 0 auto; padding: 1.25rem 1.1rem; }
+/* ---- Progress tab ---- */
+#progress-screen{display:none;max-width:480px;margin:0 auto;padding:1.25rem 1.1rem}
+.ai-card{background:var(--purple-bg);border:1px solid rgba(184,156,245,.35);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.25rem}
+.ai-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ai-card-title{font-size:13px;font-weight:700;color:var(--purple);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+.ai-btn{background:var(--purple);color:#0E1110;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+.ai-btn:disabled{opacity:.5}
+.ai-text{font-size:13.5px;line-height:1.55;color:var(--txt);white-space:pre-wrap}
+.ai-placeholder{font-size:13px;color:var(--txt3);line-height:1.5}
+.progress-list-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;margin-bottom:.6rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.progress-list-item:active{background:var(--bg-el)}
+.pli-name{font-size:14px;font-weight:600}
+.pli-sub{font-size:11px;color:var(--txt3);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.pli-delta{font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.pli-delta.pos{color:var(--done)}
+.pli-delta.neutral{color:var(--txt3)}
+.detail-overlay{position:fixed;inset:0;background:var(--bg);z-index:60;overflow-y:auto;display:none}
+.detail-inner{max-width:480px;margin:0 auto;padding:1.25rem 1.1rem 3rem}
+.detail-topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.detail-topbar h2{font-size:18px;font-weight:700}
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{text-align:left;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;font-family:'IBM Plex Mono',monospace;padding:0 8px 8px 0;border-bottom:1px solid var(--border)}
+.hist-table td{font-size:13.5px;padding:10px 8px 10px 0;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace}
+.hist-table td.rpe-cell{color:var(--txt2)}
 
-  .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-  .topbar-mark { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
-  .topbar h1 { font-size: 21px; font-weight: 700; margin-top: 3px; }
-  .topbar-date { font-size: 12px; color: var(--text-secondary); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
-  .gear-btn {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary); cursor: pointer; font-size: 16px;
-  }
-
-  .pending-banner {
-    background: var(--warn-bg);
-    border: 1px solid rgba(240, 168, 49, 0.35);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 1.25rem;
-    display: none;
-  }
-  .pending-banner .pb-title { font-size: 13px; font-weight: 600; color: var(--warn); margin-bottom: 8px; }
-  .pending-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; gap: 10px; }
-  .pending-row span { font-size: 13px; color: var(--text-primary); }
-  .pending-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .pending-actions button {
-    font-size: 11px; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  .pa-yes { background: var(--done); color: #0E1110; }
-  .pa-no { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border) !important; }
-
-  .progress-track { height: 4px; background: var(--bg-card); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.35s ease; }
-
-  .loading-state, .error-state, .empty-state {
-    text-align: center; padding: 3rem 1rem; color: var(--text-secondary); font-size: 14px;
-  }
-  .error-state { color: #F08A83; }
-  .spinner {
-    width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent);
-    border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .ex-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.1rem 1.2rem;
-    margin-bottom: 0.7rem;
-    transition: border-color 0.2s, opacity 0.2s;
-  }
-  .ex-card.done { border-color: rgba(74, 222, 128, 0.4); opacity: 0.55; }
-  .ex-card.clickable { cursor: pointer; }
-  .ex-card.clickable:active { background: var(--bg-elevated); }
-
-  .ex-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-  .ex-name { font-size: 15.5px; font-weight: 600; line-height: 1.3; }
-  .ex-tipo { font-size: 10.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
-  .done-check { color: var(--done); font-size: 20px; flex-shrink: 0; }
-  .chevron { color: var(--text-tertiary); font-size: 18px; flex-shrink: 0; }
-
-  .ex-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .pill { font-size: 11.5px; padding: 4px 9px; border-radius: 20px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
-  .pill-base { background: var(--bg-elevated); color: var(--text-secondary); }
-  .pill-up { background: var(--done-bg); color: var(--done); }
-  .pill-warn { background: var(--warn-bg); color: var(--warn); }
-
-  .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .weight-row button {
-    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
-    background: var(--bg-elevated); color: var(--text-primary); font-size: 17px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .weight-display { font-size: 18px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; min-width: 64px; text-align: center; }
-
-  .series-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 7px; margin-bottom: 10px; }
-  .serie-btn {
-    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 9px;
-    padding: 9px 4px; text-align: center; cursor: pointer; transition: all 0.15s;
-  }
-  .serie-btn .s-num { font-size: 10px; color: var(--text-tertiary); font-family: 'IBM Plex Mono', monospace; }
-  .serie-btn .s-val { font-size: 13px; font-weight: 600; margin-top: 2px; }
-  .serie-btn.filled { background: var(--done-bg); border-color: rgba(74, 222, 128, 0.4); }
-  .serie-btn.filled .s-val { color: var(--done); }
-
-  .rpe-row { display: flex; gap: 4px; margin-bottom: 4px; }
-  .rpe-btn {
-    flex: 1; text-align: center; padding: 7px 0; border-radius: 7px; border: 1px solid var(--border);
-    background: var(--bg-elevated); color: var(--text-secondary); font-size: 12px; cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace; font-weight: 600;
-  }
-  .rpe-btn.sel { background: var(--accent-bg); border-color: var(--accent-dim); color: var(--accent); }
-
-  .hist-note { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; font-family: 'IBM Plex Mono', monospace; }
-
-  .session-footer { margin-top: 1.5rem; }
-  .notes-area {
-    width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 14px; color: var(--text-primary); font-size: 13px; font-family: 'Space Grotesk', sans-serif;
-    resize: none; margin-bottom: 0.9rem;
-  }
-  .notes-area::placeholder { color: var(--text-tertiary); }
-
-  .toast {
-    position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--accent); color: #0E1110; padding: 12px 22px; border-radius: 30px;
-    font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; pointer-events: none;
-    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 50;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.error-toast { background: var(--danger); color: #fff; }
-
-  /* ---------- Bottom nav ---------- */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--bg-elevated); border-top: 1px solid var(--border);
-    display: flex; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
-    max-width: 480px; margin: 0 auto; z-index: 40;
-  }
-  .nav-btn {
-    flex: 1; background: none; border: none; color: var(--text-tertiary);
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 0; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-  }
-  .nav-btn .nav-icon { font-size: 18px; }
-  .nav-btn.active { color: var(--accent); }
-
-  /* ---------- Progress tab ---------- */
-  #progress-screen { display: none; }
-  .ai-card {
-    background: var(--purple-bg); border: 1px solid rgba(184, 156, 245, 0.35);
-    border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1.25rem;
-  }
-  .ai-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .ai-card-title { font-size: 13px; font-weight: 700; color: var(--purple); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em; }
-  .ai-btn {
-    background: var(--purple); color: #0E1110; border: none; border-radius: 8px;
-    padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  .ai-btn:disabled { opacity: 0.5; }
-  .ai-text { font-size: 13.5px; line-height: 1.55; color: var(--text-primary); white-space: pre-wrap; }
-  .ai-placeholder { font-size: 13px; color: var(--text-tertiary); line-height: 1.5; }
-
-  .progress-list-item {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; cursor: pointer;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .progress-list-item:active { background: var(--bg-elevated); }
-  .pli-name { font-size: 14px; font-weight: 600; }
-  .pli-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
-  .pli-delta { font-size: 13px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
-  .pli-delta.pos { color: var(--done); }
-  .pli-delta.neutral { color: var(--text-tertiary); }
-
-  .detail-overlay {
-    position: fixed; inset: 0; background: var(--bg); z-index: 60; overflow-y: auto;
-    display: none;
-  }
-  .detail-inner { max-width: 480px; margin: 0 auto; padding: 1.25rem 1.1rem 3rem; }
-  .detail-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
-  .detail-topbar h2 { font-size: 18px; font-weight: 700; }
-  .hist-table { width: 100%; border-collapse: collapse; }
-  .hist-table th {
-    text-align: left; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;
-    letter-spacing: 0.05em; font-family: 'IBM Plex Mono', monospace; padding: 0 8px 8px 0; border-bottom: 1px solid var(--border);
-  }
-  .hist-table td {
-    font-size: 13.5px; padding: 10px 8px 10px 0; border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  .hist-table td.rpe-cell { color: var(--text-secondary); }
+/* ---- Bottom nav / toast ---- */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-el);border-top:1px solid var(--border);display:flex;padding:.6rem 1rem calc(.6rem + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;z-index:40}
+.nav-btn{flex:1;background:none;border:none;color:var(--txt3);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:8px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.nav-btn .nav-icon{font-size:18px}
+.nav-btn.active{color:var(--acc)}
+.toast{position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--acc);color:#0E1110;padding:12px 22px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error-toast{background:var(--danger);color:#fff}
 </style>
 </head>
 <body>
 
-<!-- ============ SETUP SCREEN ============ -->
+<!-- SETUP -->
 <div id="setup-screen">
-  <div class="setup-topbar" id="setup-back-row" style="display:none;">
+  <div class="setup-topbar" id="setup-back-row" style="display:none">
     <button class="back-btn" id="btn-back-setup">←</button>
   </div>
   <div class="setup-mark">// Entrenador personal</div>
   <h1>Conecta tu backend para empezar</h1>
-
   <div class="field-group">
     <label>URL base de la function app</label>
     <input type="text" id="input-base-url" placeholder="https://personalgymtoolsdmq.azurewebsites.net/api">
-    <div class="hint">Sin barra al final. Ej: https://personalgymtoolsdmq.azurewebsites.net/api</div>
+    <div class="hint">Sin barra al final</div>
   </div>
-
   <div class="field-group">
     <label>Function key (host key)</label>
     <input type="password" id="input-function-key" placeholder="código de la host key">
-    <div class="hint">Se guarda solo en este navegador (localStorage), nunca se envía a ningún sitio salvo tu propia API.</div>
+    <div class="hint">Se guarda solo en este navegador, nunca sale de aquí</div>
   </div>
-
   <button class="btn-primary" id="btn-connect">Conectar y cargar sesión</button>
   <div class="setup-error" id="setup-error"></div>
+  <div class="sesiones-mgmt" id="sesiones-mgmt" style="display:none">
+    <div class="sesiones-mgmt-title">Programa activo — Sesiones</div>
+    <div id="sesiones-mgmt-list"><div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando...</div></div>
+  </div>
 </div>
 
-<!-- ============ APP SCREEN (HOY) ============ -->
+<!-- TYPE SELECTION -->
+<div id="type-screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-mark">Hoy</div>
+      <h1>¿Qué toca?</h1>
+      <div class="topbar-date mono" id="type-date-label"></div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-settings-type">⚙</button>
+    </div>
+  </div>
+  <div class="type-grid">
+    <div class="type-card" id="type-gym" onclick="selectType('gym')">
+      <div class="type-icon">🏋️</div>
+      <div class="type-label">Gimnasio</div>
+      <div class="type-sub">Pesas</div>
+    </div>
+    <div class="type-card" id="type-pool" onclick="selectType('pool')">
+      <div class="type-icon">🏊</div>
+      <div class="type-label">Piscina</div>
+      <div class="type-sub">Solo natación</div>
+    </div>
+    <div class="type-card" id="type-gym-pool" onclick="selectType('gym-pool')">
+      <div class="type-icon">🏋️🏊</div>
+      <div class="type-label">Gym + Piscina</div>
+      <div class="type-sub">Combo</div>
+    </div>
+    <div class="type-card" id="type-cardio" onclick="selectType('cardio')">
+      <div class="type-icon">🏃</div>
+      <div class="type-label">Cardio</div>
+      <div class="type-sub">Correr · pasear</div>
+    </div>
+    <div class="type-card" id="type-home" onclick="selectType('home')">
+      <div class="type-icon">🏠</div>
+      <div class="type-label">Casa</div>
+      <div class="type-sub">Ejercicio en casa</div>
+    </div>
+  </div>
+  <div class="session-picker" id="session-picker">
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:10px;font-family:'IBM Plex Mono',monospace;">ELIGE LA SESIÓN</p>
+    <div id="session-options-list"></div>
+  </div>
+  <div style="margin-top:1.25rem">
+    <button class="btn-primary" id="btn-start-session" disabled onclick="startSession()">Empezar sesión</button>
+  </div>
+</div>
+
+<!-- APP (PESAS) -->
 <div id="app-screen">
   <div class="topbar">
     <div>
-      <div class="topbar-mark">Full Body A</div>
+      <div class="topbar-mark" id="session-label-top">Full Body A</div>
       <h1>Sesión de hoy</h1>
       <div class="topbar-date mono" id="today-label"></div>
     </div>
-    <button class="gear-btn" id="btn-settings" aria-label="Configuración">⚙</button>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-refresh" title="Recargar desde Notion">↻</button>
+      <button class="icon-btn" id="btn-settings">⚙</button>
+    </div>
   </div>
-
   <div class="pending-banner" id="pending-banner">
     <div class="pb-title">⚠ Asistencia sin confirmar</div>
     <div id="pending-list"></div>
   </div>
-
-  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-
-  <div id="content-area">
-    <div class="loading-state">
-      <div class="spinner"></div>
-      Cargando sesión desde Notion...
+  <div class="resume-banner" id="resume-banner">
+    <div class="rb-title">Sesión en curso — continúas donde lo dejaste</div>
+    <div class="resume-actions">
+      <button class="rb-continue" onclick="continuarSesion()">Continuar</button>
+      <button class="rb-discard" onclick="descartarSesion()">Descartar</button>
     </div>
   </div>
-
-  <div class="session-footer" id="session-footer" style="display:none;">
-    <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas de la sesión (sueño, energía, cómo fue)..."></textarea>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Cargando sesión...</div>
+  </div>
+  <div class="session-footer" id="session-footer" style="display:none">
+    <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas (sueño, energía, cómo fue)..."></textarea>
     <button class="btn-primary" id="btn-save" disabled>Guardar sesión completa</button>
+    <button class="btn-danger" id="btn-reset" onclick="confirmarDescartar()">Descartar y empezar de nuevo</button>
   </div>
 </div>
 
-<!-- ============ PROGRESS SCREEN ============ -->
+<!-- SIMPLE (piscina/cardio/casa) -->
+<div id="simple-screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-mark" id="simple-label-top">Piscina</div>
+      <h1>Registrar sesión</h1>
+      <div class="topbar-date mono" id="simple-date-label"></div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="volverASeleccion()">←</button>
+      <button class="icon-btn" id="btn-settings-simple">⚙</button>
+    </div>
+  </div>
+  <div class="simple-field">
+    <label>Duración (minutos)</label>
+    <input type="number" class="simple-input" id="simple-duracion" placeholder="45" min="1" max="300">
+  </div>
+  <div class="simple-field" id="simple-distancia-field">
+    <label>Distancia (metros) — opcional</label>
+    <input type="number" class="simple-input" id="simple-distancia" placeholder="1000" min="0">
+  </div>
+  <div class="simple-field">
+    <label>Notas</label>
+    <textarea class="simple-input notes-area" id="simple-notas" rows="3" placeholder="Cómo fue, qué hiciste..."></textarea>
+  </div>
+  <button class="btn-primary" id="btn-save-simple" onclick="guardarSimple()">Guardar sesión</button>
+</div>
+
+<!-- PROGRESS TAB -->
 <div id="progress-screen">
   <div class="topbar">
     <div>
       <div class="topbar-mark">Histórico</div>
       <h1>Progreso</h1>
     </div>
-    <button class="gear-btn" id="btn-settings-2" aria-label="Configuración">⚙</button>
+    <button class="icon-btn" id="btn-settings-2">⚙</button>
   </div>
-
   <div class="ai-card">
     <div class="ai-card-header">
       <span class="ai-card-title">✦ Análisis IA</span>
       <button class="ai-btn" id="btn-analyze">Generar</button>
     </div>
-    <div class="ai-placeholder" id="ai-content">Pulsa "Generar" para un resumen de cómo va tu progreso reciente. Hazlo cada 2-4 semanas, no en cada sesión.</div>
+    <div class="ai-placeholder" id="ai-content">Pulsa "Generar" para un resumen de tu progreso reciente. Hazlo cada 2-4 semanas.</div>
   </div>
-
   <div id="progress-list-area">
-    <div class="loading-state">
-      <div class="spinner"></div>
-      Cargando ejercicios...
-    </div>
+    <div class="loading-state"><div class="spinner"></div>Cargando ejercicios...</div>
   </div>
 </div>
 
-<!-- ============ DETAIL OVERLAY ============ -->
+<!-- INFO SHEET (bottom sheet con ejercicios de la sesión) -->
+<div class="info-overlay" id="info-overlay" onclick="cerrarInfo(event)">
+  <div class="info-sheet" id="info-sheet">
+    <div class="info-sheet-title" id="info-sheet-title">Full Body A</div>
+    <div class="info-sheet-sub" id="info-sheet-sub">Ejercicios de esta sesión</div>
+    <div id="info-sheet-content"></div>
+    <button class="info-close" onclick="document.getElementById('info-overlay').style.display='none'">Cerrar</button>
+  </div>
+</div>
+
+<!-- DETAIL OVERLAY -->
 <div class="detail-overlay" id="detail-overlay">
   <div class="detail-inner">
     <div class="detail-topbar">
       <button class="back-btn" id="btn-close-detail">←</button>
       <h2 id="detail-title">Ejercicio</h2>
     </div>
-    <div id="detail-content">
-      <div class="loading-state"><div class="spinner"></div>Cargando historial...</div>
-    </div>
+    <div id="detail-content"><div class="loading-state"><div class="spinner"></div>Cargando historial...</div></div>
   </div>
 </div>
 
-<!-- ============ BOTTOM NAV ============ -->
-<div class="bottom-nav" id="bottom-nav" style="display:none;">
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="nav-btn active" id="nav-hoy"><span class="nav-icon">●</span>Hoy</button>
   <button class="nav-btn" id="nav-progreso"><span class="nav-icon">▲</span>Progreso</button>
 </div>
@@ -428,418 +369,608 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY_URL = 'gym_api_base_url';
-const STORAGE_KEY_CODE = 'gym_api_function_key';
+const SK_URL='gym_api_base_url', SK_CODE='gym_api_function_key';
+const SK_SESSION_CACHE='gym_session_cache', SK_PROGRESS='gym_progress_cache';
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
 
-let API_BASE = '';
-let API_CODE = '';
-let sesionData = null;
-let estadoEjercicios = [];
-let cameFromSettingsWithData = false;
+let API_BASE='', API_CODE='';
+let sesionData=null, estadoEjercicios=[], selectedType=null, selectedSesionTipo=null;
+let progressListLoaded=false, sesionesCache=[];
 
-// ---------- Setup flow ----------
-function loadStoredCredentials() {
-  API_BASE = localStorage.getItem(STORAGE_KEY_URL) || '';
-  API_CODE = localStorage.getItem(STORAGE_KEY_CODE) || '';
-  return API_BASE && API_CODE;
+// ---- Credenciales ----
+function loadCreds(){
+  API_BASE=localStorage.getItem(SK_URL)||'';
+  API_CODE=localStorage.getItem(SK_CODE)||'';
+  return API_BASE&&API_CODE;
 }
 
-function showSetup(opts = {}) {
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('progress-screen').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'none';
-  document.getElementById('input-base-url').value = API_BASE;
-
-  const backRow = document.getElementById('setup-back-row');
-  backRow.style.display = (API_BASE && API_CODE) ? 'flex' : 'none';
-
-  const errEl = document.getElementById('setup-error');
-  errEl.style.display = 'none';
-  if (opts.error) {
-    errEl.textContent = opts.error;
-    errEl.style.display = 'block';
-  }
+// ---- Caché de sesión programada ----
+function getCachedSession(sesionTipo){
+  try{
+    const raw=localStorage.getItem(SK_SESSION_CACHE);
+    if(!raw) return null;
+    const cached=JSON.parse(raw);
+    const hoy=new Date().toISOString().slice(0,10);
+    if(cached.fecha!==hoy) return null;
+    if(cached.sesion_tipo!==sesionTipo) return null;
+    if(Date.now()-cached.ts>CACHE_TTL_MS) return null;
+    return cached.data;
+  }catch(e){return null}
 }
-
-function showApp(tab) {
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'flex';
-  setActiveTab(tab || 'hoy');
+function setCachedSession(sesionTipo, data){
+  localStorage.setItem(SK_SESSION_CACHE, JSON.stringify({
+    fecha:new Date().toISOString().slice(0,10),
+    sesion_tipo:sesionTipo, ts:Date.now(), data
+  }));
 }
+function clearSessionCache(){localStorage.removeItem(SK_SESSION_CACHE)}
 
-function setActiveTab(tab) {
-  const appScreen = document.getElementById('app-screen');
-  const progressScreen = document.getElementById('progress-screen');
-  const navHoy = document.getElementById('nav-hoy');
-  const navProgreso = document.getElementById('nav-progreso');
-
-  if (tab === 'progreso') {
-    appScreen.style.display = 'none';
-    progressScreen.style.display = 'block';
-    navHoy.classList.remove('active');
-    navProgreso.classList.add('active');
-    if (!progressListLoaded) cargarListaProgreso();
-  } else {
-    appScreen.style.display = 'block';
-    progressScreen.style.display = 'none';
-    navHoy.classList.add('active');
-    navProgreso.classList.remove('active');
-  }
+// ---- Caché de progreso en curso ----
+function saveProgress(){
+  const hoy=new Date().toISOString().slice(0,10);
+  localStorage.setItem(SK_PROGRESS, JSON.stringify({
+    fecha:hoy, sesion_tipo:selectedSesionTipo||'Full Body A',
+    selected_type:selectedType||'gym',
+    estado:estadoEjercicios, notas:document.getElementById('session-notes').value||''
+  }));
 }
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem(SK_PROGRESS);
+    if(!raw) return null;
+    const p=JSON.parse(raw);
+    const hoy=new Date().toISOString().slice(0,10);
+    if(p.fecha!==hoy) return null;
+    return p;
+  }catch(e){return null}
+}
+function clearProgress(){localStorage.removeItem(SK_PROGRESS)}
 
-document.getElementById('btn-connect').addEventListener('click', async () => {
-  const url = document.getElementById('input-base-url').value.trim().replace(/\/$/, '');
-  const code = document.getElementById('input-function-key').value.trim();
-  const errEl = document.getElementById('setup-error');
-  errEl.style.display = 'none';
-
-  if (!url || !code) {
-    errEl.textContent = 'Rellena ambos campos.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  API_BASE = url;
-  API_CODE = code;
-  localStorage.setItem(STORAGE_KEY_URL, url);
-  localStorage.setItem(STORAGE_KEY_CODE, code);
-
-  showApp('hoy');
-  await cargarSesion();
-});
-
-document.getElementById('btn-settings').addEventListener('click', () => showSetup());
-document.getElementById('btn-settings-2').addEventListener('click', () => showSetup());
-document.getElementById('btn-back-setup').addEventListener('click', () => {
-  showApp('hoy');
-});
-
-document.getElementById('nav-hoy').addEventListener('click', () => setActiveTab('hoy'));
-document.getElementById('nav-progreso').addEventListener('click', () => setActiveTab('progreso'));
-
-// ---------- API helper ----------
-async function apiCall(path, options = {}) {
-  const separator = path.includes('?') ? '&' : '?';
-  const url = `${API_BASE}${path}${separator}code=${encodeURIComponent(API_CODE)}`;
-  const response = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+// ---- Pantallas ----
+function showSetup(opts={}){
+  ['setup-screen','type-screen','app-screen','simple-screen','progress-screen'].forEach(id=>{
+    document.getElementById(id).style.display='none';
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`${response.status}: ${text || 'Error de conexión con la API'}`);
+  document.getElementById('bottom-nav').style.display='none';
+  document.getElementById('setup-screen').style.display='flex';
+  const backRow=document.getElementById('setup-back-row');
+  const hasCredentials=API_BASE&&API_CODE;
+  backRow.style.display=hasCredentials?'flex':'none';
+  document.getElementById('input-base-url').value=API_BASE;
+  const errEl=document.getElementById('setup-error');
+  errEl.style.display='none';
+  if(opts.error){errEl.textContent=opts.error;errEl.style.display='block'}
+  const mgmt=document.getElementById('sesiones-mgmt');
+  if(hasCredentials){
+    mgmt.style.display='block';
+    cargarGestionSesiones();
+  } else {
+    mgmt.style.display='none';
   }
-  return response.json();
+}
+function showTypeScreen(){
+  ['setup-screen','app-screen','simple-screen','progress-screen'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('type-screen').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  setNavActive('hoy');
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const hoy=new Date();
+  document.getElementById('type-date-label').textContent=`${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+  selectedType=null;
+  selectedSesionTipo=null;
+  document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('session-picker').style.display='none';
+  document.getElementById('btn-start-session').disabled=true;
+}
+function showApp(){
+  ['type-screen','setup-screen','simple-screen','progress-screen'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  setNavActive('hoy');
+}
+function showSimple(tipo){
+  ['type-screen','setup-screen','app-screen','progress-screen'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('simple-screen').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  setNavActive('hoy');
+  const labels={'pool':'Piscina','gym-pool':'Gym + Piscina','cardio':'Cardio','home':'Casa'};
+  document.getElementById('simple-label-top').textContent=labels[tipo]||'Sesión';
+  const distField=document.getElementById('simple-distancia-field');
+  distField.style.display=(tipo==='pool'||tipo==='gym-pool'||tipo==='cardio')?'block':'none';
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const hoy=new Date();
+  document.getElementById('simple-date-label').textContent=`${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+}
+function showProgressTab(){
+  ['type-screen','setup-screen','app-screen','simple-screen'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('progress-screen').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  setNavActive('progreso');
+  if(!progressListLoaded) cargarListaProgreso();
+}
+function setNavActive(tab){
+  document.getElementById('nav-hoy').classList.toggle('active',tab==='hoy');
+  document.getElementById('nav-progreso').classList.toggle('active',tab==='progreso');
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+// ---- Selección de tipo ----
+let sesionesDisponibles=[];
+async function selectType(tipo){
+  document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('type-'+tipo).classList.add('selected');
+  selectedType=tipo;
+  const picker=document.getElementById('session-picker');
+  const btnStart=document.getElementById('btn-start-session');
+  const usaPlantillas=tipo==='gym'||tipo==='gym-pool'||tipo==='home';
+  if(usaPlantillas){
+    picker.style.display='block';
+    btnStart.disabled=true;
+    document.getElementById('session-options-list').innerHTML=`<div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin-bottom:.5rem"></div>Cargando sesiones...</div>`;
+    try{
+      const sesData=await apiCall('/sesiones');
+      sesionesCache=sesData.sesiones||[];
+      // Filtrar por ubicación según el tipo seleccionado
+      const ubicacionFiltro=tipo==='home'?['Casa','Cualquiera']:['Gym','Cualquiera'];
+      const activas=sesionesCache.filter(s=>s.activo&&ubicacionFiltro.includes(s.ubicacion));
+      sesionesDisponibles=activas.map(s=>s.sesion_tipo);
+      if(sesionesDisponibles.length===0){
+        document.getElementById('session-options-list').innerHTML=`<div class="error-state" style="padding:.5rem 0">No hay sesiones activas para esta ubicación</div>`;
+      } else if(sesionesDisponibles.length===1){
+        selectedSesionTipo=sesionesDisponibles[0];
+        renderSesionOptions();
+        btnStart.disabled=false;
+        const cached=getCachedSession(selectedSesionTipo);
+        if(cached) sesionData=cached;
+      } else {
+        renderSesionOptions();
+      }
+    }catch(err){
+      document.getElementById('session-options-list').innerHTML=`<div class="error-state" style="padding:.5rem 0">Error al cargar sesiones</div>`;
+    }
+  } else {
+    picker.style.display='none';
+    selectedSesionTipo=null;
+    btnStart.disabled=false;
+  }
+}
+function renderSesionOptions(){
+  document.getElementById('session-options-list').innerHTML=sesionesDisponibles.map(s=>`
+    <div class="session-option ${selectedSesionTipo===s?'selected':''}" onclick="selectSesionTipo('${escapeHtml(s)}')">
+      <div style="flex:1">
+        <div class="session-option-name">${escapeHtml(s)}</div>
+        <div class="session-option-sub">Activo en Notion</div>
+      </div>
+      <button class="info-btn" onclick="event.stopPropagation();mostrarInfoSesion('${escapeHtml(s)}')" title="Ver ejercicios">ⓘ</button>
+      ${selectedSesionTipo===s?'<span style="color:var(--acc);margin-left:6px">✓</span>':''}
+    </div>`).join('');
+}
+function selectSesionTipo(tipo){
+  selectedSesionTipo=tipo;
+  document.getElementById('btn-start-session').disabled=false;
+  renderSesionOptions();
+}
+async function startSession(){
+  if(selectedType==='gym'||selectedType==='gym-pool'||selectedType==='home'){
+    showApp();
+    await cargarSesion(false);
+    saveProgress();
+  } else {
+    showSimple(selectedType);
+  }
+}
+function volverASeleccion(){showTypeScreen()}
+
+// ---- API ----
+async function apiCall(path,options={}){
+  const sep=path.includes('?')?'&':'?';
+  const url=`${API_BASE}${path}${sep}code=${encodeURIComponent(API_CODE)}`;
+  const r=await fetch(url,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+  if(!r.ok){const t=await r.text().catch(()=>'');throw new Error(`${r.status}: ${t||'Error de conexión'}`)}
+  return r.json();
+}
+function escapeHtml(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML}
+function showToast(msg,isError){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(isError?' error-toast':'');
+  setTimeout(()=>{t.className='toast'},3500);
 }
 
-function showToast(msg, isError) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (isError ? ' error-toast' : '');
-  setTimeout(() => { t.className = 'toast'; }, 3500);
-}
+// ---- Carga de sesión de pesas ----
+async function cargarSesion(forceRefresh=false){
+  const contentArea=document.getElementById('content-area');
+  const footer=document.getElementById('session-footer');
+  const resumeBanner=document.getElementById('resume-banner');
+  footer.style.display='none';
+  resumeBanner.style.display='none';
 
-// ---------- HOY: load session ----------
-async function cargarSesion() {
-  const contentArea = document.getElementById('content-area');
-  const footer = document.getElementById('session-footer');
-  footer.style.display = 'none';
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const hoy=new Date();
+  document.getElementById('today-label').textContent=`${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+  document.getElementById('session-label-top').textContent=selectedSesionTipo||'Full Body A';
 
-  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const hoy = new Date();
-  document.getElementById('today-label').textContent = `${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+  const progresoGuardado=loadProgress();
+  if(progresoGuardado&&!forceRefresh){
+    const cachedData=getCachedSession(progresoGuardado.sesion_tipo);
+    if(cachedData){
+      sesionData=cachedData;
+      estadoEjercicios=progresoGuardado.estado;
+      document.getElementById('session-notes').value=progresoGuardado.notas||'';
+      renderPendingBanner(sesionData.asistencia_pendiente_confirmar||[]);
+      resumeBanner.style.display='block';
+      renderEjercicios();
+      footer.style.display='block';
+      return;
+    }
+  }
 
-  try {
-    sesionData = await apiCall('/programar_sesion');
-    renderPendingBanner(sesionData.asistencia_pendiente_confirmar || []);
-    estadoEjercicios = sesionData.ejercicios.map(ex => ({
-      seriesDone: [],
-      pesoActual: ex.peso_recomendado || 0,
-      rpeReal: null,
-    }));
+  const sTipo=selectedSesionTipo||'Full Body A';
+  if(!forceRefresh){
+    const cached=getCachedSession(sTipo);
+    if(cached){
+      sesionData=cached;
+      renderPendingBanner(sesionData.asistencia_pendiente_confirmar||[]);
+      estadoEjercicios=sesionData.ejercicios.map(ex=>({seriesDone:[],pesoActual:ex.peso_recomendado||0,rpeReal:null}));
+      renderEjercicios();
+      footer.style.display='block';
+      return;
+    }
+  }
+
+  contentArea.innerHTML=`<div class="loading-state"><div class="spinner"></div>Cargando desde Notion...</div>`;
+  try{
+    const path=`/programar_sesion${sTipo!=='Full Body A'?`?sesion_tipo=${encodeURIComponent(sTipo)}`:''}`;
+    sesionData=await apiCall(path);
+    setCachedSession(sTipo,sesionData);
+    renderPendingBanner(sesionData.asistencia_pendiente_confirmar||[]);
+    estadoEjercicios=sesionData.ejercicios.map(ex=>({seriesDone:[],pesoActual:ex.peso_recomendado||0,rpeReal:null}));
+    clearProgress();
     renderEjercicios();
-    footer.style.display = 'block';
-  } catch (err) {
-    contentArea.innerHTML = `
-      <div class="error-state">
-        No se pudo cargar la sesión.<br>
-        <span class="mono" style="font-size:12px;">${escapeHtml(err.message)}</span><br><br>
-        Revisa la URL y la function key en ⚙
-      </div>`;
+    footer.style.display='block';
+  }catch(err){
+    contentArea.innerHTML=`<div class="error-state">No se pudo cargar.<br><span class="mono" style="font-size:12px">${escapeHtml(err.message)}</span><br><br>Revisa la URL y la key en ⚙</div>`;
   }
 }
+function continuarSesion(){
+  document.getElementById('resume-banner').style.display='none';
+  showToast('Sesión restaurada');
+}
+function descartarSesion(){
+  if(!confirm('¿Descartar el progreso guardado y empezar de nuevo?')) return;
+  clearProgress();
+  estadoEjercicios=sesionData.ejercicios.map(ex=>({seriesDone:[],pesoActual:ex.peso_recomendado||0,rpeReal:null}));
+  document.getElementById('session-notes').value='';
+  document.getElementById('resume-banner').style.display='none';
+  renderEjercicios();
+}
+function confirmarDescartar(){
+  if(!confirm('¿Descartar toda la sesión actual y volver a la selección?')) return;
+  clearProgress();
+  showTypeScreen();
+}
 
-function renderPendingBanner(pendientes) {
-  const banner = document.getElementById('pending-banner');
-  const list = document.getElementById('pending-list');
-  if (!pendientes.length) {
-    banner.style.display = 'none';
-    return;
-  }
-  banner.style.display = 'block';
-  list.innerHTML = pendientes.map(p => `
+// ---- Pending banner ----
+function renderPendingBanner(pendientes){
+  const banner=document.getElementById('pending-banner');
+  const list=document.getElementById('pending-list');
+  if(!pendientes.length){banner.style.display='none';return}
+  banner.style.display='block';
+  list.innerHTML=pendientes.map(p=>`
     <div class="pending-row">
       <span>${escapeHtml(p.sesion)} — ${p.fecha}</span>
       <div class="pending-actions">
-        <button class="pa-yes" onclick="confirmarAsistencia('${p.sesion_id}', true, this)">Sí fui</button>
-        <button class="pa-no" onclick="confirmarAsistencia('${p.sesion_id}', false, this)">No fui</button>
+        <button class="pa-yes" onclick="confirmarAsistencia('${p.sesion_id}',true,this)">Sí fui</button>
+        <button class="pa-no" onclick="confirmarAsistencia('${p.sesion_id}',false,this)">No fui</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
+}
+async function confirmarAsistencia(sesionId,asistio,btnEl){
+  try{
+    await apiCall('/confirmar_asistencia',{method:'POST',body:JSON.stringify({sesion_id:sesionId,asistio})});
+    const row=btnEl.closest('.pending-row');
+    row.style.opacity='.4';row.style.pointerEvents='none';
+    showToast(asistio?'Asistencia confirmada':'Marcado como no asistido');
+  }catch(err){showToast('Error: '+err.message,true)}
 }
 
-async function confirmarAsistencia(sesionId, asistio, btnEl) {
-  try {
-    await apiCall('/confirmar_asistencia', {
-      method: 'POST',
-      body: JSON.stringify({ sesion_id: sesionId, asistio }),
-    });
-    const row = btnEl.closest('.pending-row');
-    row.style.opacity = '0.4';
-    row.style.pointerEvents = 'none';
-    showToast(asistio ? 'Asistencia confirmada' : 'Marcado como no asistido');
-  } catch (err) {
-    showToast('Error al confirmar: ' + err.message, true);
-  }
-}
-
-function renderEjercicios() {
-  const container = document.getElementById('content-area');
-  const ejercicios = sesionData.ejercicios;
-
-  const totalSeries = ejercicios.reduce((a, e) => a + e.series, 0);
-  const seriesDone = estadoEjercicios.reduce((a, s) => a + s.seriesDone.length, 0);
-  document.getElementById('progress-fill').style.width = Math.round((seriesDone / totalSeries) * 100) + '%';
-
-  const allDone = estadoEjercicios.every((s, i) => s.seriesDone.length >= ejercicios[i].series);
-  document.getElementById('btn-save').disabled = !allDone;
-
-  container.innerHTML = ejercicios.map((ex, i) => {
-    const s = estadoEjercicios[i];
-    const done = s.seriesDone.length >= ex.series;
-    const isCompuesto = ex.tipo === 'Compuesto';
-    const incremento = isCompuesto ? 2.5 : 1.25;
-
-    const pillClass = ex.cambio && ex.cambio.startsWith('⬆') ? 'pill-up' : (ex.cambio === '⚠️ calibración' ? 'pill-warn' : 'pill-base');
-
-    const serieBtns = Array.from({ length: ex.series }, (_, si) => {
-      const isDone = s.seriesDone.includes(si);
-      return `<div class="serie-btn ${isDone ? 'filled' : ''}" onclick="toggleSerie(${i}, ${si})">
-        <div class="s-num">S${si + 1}</div>
-        <div class="s-val">${isDone ? '✓' : ex.reps}</div>
-      </div>`;
+// ---- Render ejercicios ----
+function renderEjercicios(){
+  const container=document.getElementById('content-area');
+  const ejercicios=sesionData.ejercicios;
+  const total=ejercicios.reduce((a,e)=>a+e.series,0);
+  const done=estadoEjercicios.reduce((a,s)=>a+s.seriesDone.length,0);
+  document.getElementById('progress-fill').style.width=Math.round((done/total)*100)+'%';
+  const allDone=estadoEjercicios.every((s,i)=>s.seriesDone.length>=ejercicios[i].series);
+  document.getElementById('btn-save').disabled=!allDone;
+  container.innerHTML=ejercicios.map((ex,i)=>{
+    const s=estadoEjercicios[i];
+    const isDone=s.seriesDone.length>=ex.series;
+    const isComp=ex.tipo==='Compuesto';
+    const inc=isComp?2.5:1.25;
+    const pillClass=ex.cambio&&ex.cambio.startsWith('⬆')?'pill-up':(ex.cambio==='⚠️ calibración'?'pill-warn':'pill-base');
+    const serieBtns=Array.from({length:ex.series},(_,si)=>{
+      const d=s.seriesDone.includes(si);
+      return `<div class="serie-btn ${d?'filled':''}" onclick="toggleSerie(${i},${si})"><div class="s-num">S${si+1}</div><div class="s-val">${d?'✓':ex.reps}</div></div>`;
     }).join('');
-
-    const rpeOpts = [6, 7, 8, 9, 10].map(r =>
-      `<div class="rpe-btn ${s.rpeReal === r ? 'sel' : ''}" onclick="setRPE(${i},${r})">${r}</div>`
-    ).join('');
-
-    const histNote = ex.historial_reciente && ex.historial_reciente.length
-      ? `<div class="hist-note">Última: ${ex.historial_reciente[0].peso}kg × ${ex.historial_reciente[0].reps} @ RPE ${ex.historial_reciente[0].rpe ?? '–'}</div>`
-      : `<div class="hist-note">Sin historial todavía</div>`;
-
-    return `<div class="ex-card ${done ? 'done' : ''}">
-      <div class="ex-top">
-        <div>
-          <div class="ex-name">${escapeHtml(ex.ejercicio)}</div>
-          <div class="ex-tipo">${ex.tipo}</div>
-        </div>
-        ${done ? '<span class="done-check">✓</span>' : ''}
-      </div>
-      <div class="ex-meta">
-        <span class="pill pill-base">${ex.series}×${ex.reps}</span>
-        <span class="pill ${pillClass}">${ex.cambio}</span>
-        <span class="pill pill-base">RPE obj. ${ex.rpe_objetivo}</span>
-      </div>
-      <div class="weight-row">
-        <button onclick="ajustarPeso(${i}, -${incremento})">−</button>
-        <div class="weight-display">${s.pesoActual} kg</div>
-        <button onclick="ajustarPeso(${i}, ${incremento})">+</button>
-      </div>
+    const rpeOpts=[6,7,8,9,10].map(r=>`<div class="rpe-btn ${s.rpeReal===r?'sel':''}" onclick="setRPE(${i},${r})">${r}</div>`).join('');
+    const histNote=ex.historial_reciente&&ex.historial_reciente.length
+      ?`<div class="hist-note">Última: ${ex.historial_reciente[0].peso}kg × ${ex.historial_reciente[0].reps} @ RPE ${ex.historial_reciente[0].rpe??'–'}</div>`
+      :`<div class="hist-note">Sin historial todavía</div>`;
+    return `<div class="ex-card ${isDone?'done':''}">
+      <div class="ex-top"><div><div class="ex-name">${escapeHtml(ex.ejercicio)}</div><div class="ex-tipo">${ex.tipo}</div></div>${isDone?'<span class="done-check">✓</span>':''}</div>
+      <div class="ex-meta"><span class="pill pill-base">${ex.series}×${ex.reps}</span><span class="pill ${pillClass}">${ex.cambio}</span><span class="pill pill-base">RPE obj. ${ex.rpe_objetivo}</span></div>
+      <div class="weight-row"><button onclick="ajustarPeso(${i},-${inc})">−</button><div class="weight-display">${s.pesoActual} kg</div><button onclick="ajustarPeso(${i},${inc})">+</button></div>
       <div class="series-grid">${serieBtns}</div>
-      <div class="rpe-row">${rpeOpts}</div>
-      ${histNote}
-    </div>`;
+      <div class="rpe-row">${rpeOpts}</div>${histNote}</div>`;
   }).join('');
 }
-
-function toggleSerie(i, si) {
-  const idx = estadoEjercicios[i].seriesDone.indexOf(si);
-  if (idx >= 0) estadoEjercicios[i].seriesDone.splice(idx, 1);
+function toggleSerie(i,si){
+  const idx=estadoEjercicios[i].seriesDone.indexOf(si);
+  if(idx>=0) estadoEjercicios[i].seriesDone.splice(idx,1);
   else estadoEjercicios[i].seriesDone.push(si);
-  renderEjercicios();
+  saveProgress(); renderEjercicios();
+}
+function ajustarPeso(i,delta){
+  estadoEjercicios[i].pesoActual=Math.max(0,parseFloat((estadoEjercicios[i].pesoActual+delta).toFixed(2)));
+  saveProgress(); renderEjercicios();
+}
+function setRPE(i,r){
+  estadoEjercicios[i].rpeReal=estadoEjercicios[i].rpeReal===r?null:r;
+  saveProgress(); renderEjercicios();
 }
 
-function ajustarPeso(i, delta) {
-  estadoEjercicios[i].pesoActual = Math.max(0, parseFloat((estadoEjercicios[i].pesoActual + delta).toFixed(2)));
-  renderEjercicios();
-}
-
-function setRPE(i, r) {
-  estadoEjercicios[i].rpeReal = estadoEjercicios[i].rpeReal === r ? null : r;
-  renderEjercicios();
-}
-
-document.getElementById('btn-save').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-save');
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-
-  const ejercicios = sesionData.ejercicios.map((ex, i) => ({
-    biblioteca_id: ex.biblioteca_id,
-    ejercicio: ex.ejercicio,
-    series: ex.series,
-    reps: estadoEjercicios[i].seriesDone.length,
-    peso: estadoEjercicios[i].pesoActual,
-    rpe: estadoEjercicios[i].rpeReal,
+// ---- Guardar pesas ----
+document.getElementById('btn-save').addEventListener('click',async()=>{
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const ejercicios=sesionData.ejercicios.map((ex,i)=>({
+    biblioteca_id:ex.biblioteca_id, ejercicio:ex.ejercicio,
+    series:ex.series, reps:estadoEjercicios[i].seriesDone.length,
+    peso:estadoEjercicios[i].pesoActual, rpe:estadoEjercicios[i].rpeReal,
   }));
-
-  const payload = {
-    sesion: 'Full Body A',
-    fecha: new Date().toISOString().slice(0, 10),
-    tipo: 'Gym - Full body',
-    notas: document.getElementById('session-notes').value,
-    asistio: true,
-    ejercicios,
+  const tipoSesion=selectedType==='gym-pool'?'Gym + Piscina':selectedType==='home'?'Casa':'Gym - Full body';
+  const payload={
+    sesion:selectedSesionTipo||'Full Body A',
+    plantilla_usada:selectedSesionTipo||'Full Body A',
+    fecha:new Date().toISOString().slice(0,10),
+    tipo:tipoSesion,
+    notas:document.getElementById('session-notes').value,
+    asistio:true, ejercicios,
   };
-
-  try {
-    const result = await apiCall('/registrar_sesion', { method: 'POST', body: JSON.stringify(payload) });
-    showToast(`Sesión guardada — ${result.registros_creados} ejercicios registrados`);
-    btn.textContent = 'Guardado ✓';
-
-    for (let i = 0; i < ejercicios.length; i++) {
-      if (sesionData.ejercicios[i].cambio && sesionData.ejercicios[i].cambio.startsWith('⬆')) {
-        await apiCall('/actualizar_peso', {
-          method: 'POST',
-          body: JSON.stringify({ biblioteca_id: ejercicios[i].biblioteca_id, peso: ejercicios[i].peso }),
-        }).catch(() => {});
+  try{
+    const result=await apiCall('/registrar_sesion',{method:'POST',body:JSON.stringify(payload)});
+    showToast(`Guardado — ${result.registros_creados} ejercicios`);
+    btn.textContent='Guardado ✓';
+    clearProgress(); clearSessionCache();
+    for(let i=0;i<ejercicios.length;i++){
+      if(sesionData.ejercicios[i].cambio&&sesionData.ejercicios[i].cambio.startsWith('⬆')){
+        await apiCall('/actualizar_peso',{method:'POST',body:JSON.stringify({biblioteca_id:ejercicios[i].biblioteca_id,peso:ejercicios[i].peso})}).catch(()=>{});
       }
     }
-    progressListLoaded = false; // fuerza recarga de progreso con datos nuevos
-  } catch (err) {
-    showToast('Error al guardar: ' + err.message, true);
-    btn.disabled = false;
-    btn.textContent = 'Guardar sesión completa';
+    progressListLoaded=false;
+  }catch(err){
+    showToast('Error: '+err.message,true);
+    btn.disabled=false; btn.textContent='Guardar sesión completa';
   }
 });
 
-// ---------- PROGRESO tab ----------
-let progressListLoaded = false;
-
-async function cargarListaProgreso() {
-  const area = document.getElementById('progress-list-area');
-  area.innerHTML = `<div class="loading-state"><div class="spinner"></div>Cargando ejercicios...</div>`;
-
-  // Reutilizamos la lista de ejercicios del Full Body A ya cargada en /programar_sesion,
-  // que trae biblioteca_id — así no hay que mantener otra lista por separado.
-  if (!sesionData) {
-    try { sesionData = await apiCall('/programar_sesion'); }
-    catch (err) {
-      area.innerHTML = `<div class="error-state">No se pudo cargar la lista de ejercicios.</div>`;
-      return;
-    }
+// ---- Guardar simple (piscina/cardio/casa) ----
+async function guardarSimple(){
+  const btn=document.getElementById('btn-save-simple');
+  const dur=parseInt(document.getElementById('simple-duracion').value)||null;
+  const dist=parseInt(document.getElementById('simple-distancia').value)||null;
+  const notas=document.getElementById('simple-notas').value;
+  const tipoMap={'pool':'Piscina','gym-pool':'Gym + Piscina','cardio':'Cardio','home':'Casa'};
+  btn.disabled=true; btn.textContent='Guardando...';
+  try{
+    const nombreSesion=tipoMap[selectedType]||'Sesión';
+    await apiCall('/registrar_sesion',{method:'POST',body:JSON.stringify({
+      sesion:nombreSesion,
+      plantilla_usada:selectedSesionTipo||nombreSesion,
+      fecha:new Date().toISOString().slice(0,10),
+      tipo:tipoMap[selectedType]||'Cardio',
+      duracion_min:dur, distancia_m:dist, notas, asistio:true, ejercicios:[],
+    })});
+    showToast('Sesión guardada');
+    setTimeout(()=>showTypeScreen(),1000);
+  }catch(err){
+    showToast('Error: '+err.message,true);
+    btn.disabled=false; btn.textContent='Guardar sesión';
   }
+}
 
-  area.innerHTML = sesionData.ejercicios.map(ex => {
-    const hist = ex.historial_reciente || [];
-    let deltaHtml = '<span class="pli-delta neutral">—</span>';
-    if (hist.length >= 2) {
-      const delta = hist[0].peso - hist[hist.length - 1].peso;
-      const sign = delta > 0 ? '+' : '';
-      deltaHtml = `<span class="pli-delta ${delta > 0 ? 'pos' : 'neutral'}">${sign}${delta.toFixed(1)}kg</span>`;
-    }
-    return `<div class="progress-list-item" onclick="abrirDetalleProgreso('${ex.biblioteca_id}', '${escapeHtml(ex.ejercicio)}')">
-      <div>
-        <div class="pli-name">${escapeHtml(ex.ejercicio)}</div>
-        <div class="pli-sub">${hist.length} sesión${hist.length === 1 ? '' : 'es'} registrada${hist.length === 1 ? '' : 's'}</div>
-      </div>
-      ${deltaHtml}
-    </div>`;
+// ---- Refresh manual ----
+document.getElementById('btn-refresh').addEventListener('click',async()=>{
+  clearSessionCache(); clearProgress();
+  await cargarSesion(true);
+  showToast('Sesión actualizada desde Notion');
+});
+
+// ---- Progreso tab ----
+async function cargarListaProgreso(){
+  const area=document.getElementById('progress-list-area');
+  area.innerHTML=`<div class="loading-state"><div class="spinner"></div>Cargando...</div>`;
+  if(!sesionData){
+    try{sesionData=await apiCall('/programar_sesion')}
+    catch(err){area.innerHTML=`<div class="error-state">Error al cargar ejercicios</div>`;return}
+  }
+  area.innerHTML=sesionData.ejercicios.map(ex=>{
+    const hist=ex.historial_reciente||[];
+    let deltaHtml=`<span class="pli-delta neutral">—</span>`;
+    if(hist.length>=2){const d=hist[0].peso-hist[hist.length-1].peso;const sign=d>0?'+':'';deltaHtml=`<span class="pli-delta ${d>0?'pos':'neutral'}">${sign}${d.toFixed(1)}kg</span>`}
+    return `<div class="progress-list-item" onclick="abrirDetalleProgreso('${ex.biblioteca_id}','${escapeHtml(ex.ejercicio)}')">
+      <div><div class="pli-name">${escapeHtml(ex.ejercicio)}</div><div class="pli-sub">${hist.length} sesión${hist.length===1?'':'es'}</div></div>${deltaHtml}</div>`;
   }).join('');
+  progressListLoaded=true;
+}
+async function abrirDetalleProgreso(id,nombre){
+  const overlay=document.getElementById('detail-overlay');
+  const content=document.getElementById('detail-content');
+  document.getElementById('detail-title').textContent=nombre;
+  overlay.style.display='block';
+  content.innerHTML=`<div class="loading-state"><div class="spinner"></div>Cargando...</div>`;
+  try{
+    const data=await apiCall(`/progreso?biblioteca_id=${encodeURIComponent(id)}&limite=15`);
+    if(!data.historial||!data.historial.length){content.innerHTML=`<div class="empty-state">Sin registros todavía</div>`;return}
+    const progresoLine=data.progreso_kg_en_periodo!=null?`<div class="hist-note" style="margin-bottom:1rem;font-size:13px">Progreso en el periodo: <strong style="color:var(--done)">${data.progreso_kg_en_periodo>0?'+':''}${data.progreso_kg_en_periodo}kg</strong> en ${data.sesiones_consideradas} sesiones</div>`:'';
+    const rows=data.historial.map((r,i)=>`<tr><td class="mono">${data.historial.length-i}</td><td>${r.peso??'–'} kg</td><td>${r.reps??'–'}</td><td class="rpe-cell">${r.rpe??'–'}</td></tr>`).join('');
+    content.innerHTML=`${progresoLine}<table class="hist-table"><thead><tr><th>#</th><th>Peso</th><th>Reps</th><th>RPE</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }catch(err){content.innerHTML=`<div class="error-state">Error: ${escapeHtml(err.message)}</div>`}
+}
+document.getElementById('btn-close-detail').addEventListener('click',()=>{document.getElementById('detail-overlay').style.display='none'});
+document.getElementById('btn-analyze').addEventListener('click',async()=>{
+  const btn=document.getElementById('btn-analyze');
+  const content=document.getElementById('ai-content');
+  btn.disabled=true; btn.textContent='Pensando...';
+  content.textContent='Generando análisis...'; content.className='ai-placeholder';
+  try{
+    const data=await apiCall('/analisis_progreso');
+    content.textContent=data.analisis; content.className='ai-text';
+  }catch(err){content.textContent='Error: '+err.message; content.className='ai-placeholder'}
+  finally{btn.disabled=false; btn.textContent='Regenerar'}
+});
 
-  progressListLoaded = true;
+// ---- Nav ----
+document.getElementById('nav-hoy').addEventListener('click',()=>{
+  const app=document.getElementById('app-screen');
+  const type=document.getElementById('type-screen');
+  const simple=document.getElementById('simple-screen');
+  if(app.style.display!=='none'||type.style.display!=='none'||simple.style.display!=='none') return;
+  showTypeScreen();
+});
+document.getElementById('nav-progreso').addEventListener('click',()=>showProgressTab());
+
+// ---- Settings buttons ----
+['btn-settings','btn-settings-type','btn-settings-simple','btn-settings-2'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('click',()=>showSetup());
+});
+document.getElementById('btn-back-setup').addEventListener('click',()=>{
+  if(document.getElementById('app-screen').style.display!=='none') showApp();
+  else showTypeScreen();
+});
+document.getElementById('btn-connect').addEventListener('click',async()=>{
+  const url=document.getElementById('input-base-url').value.trim().replace(/\/$/,'');
+  const code=document.getElementById('input-function-key').value.trim();
+  const errEl=document.getElementById('setup-error');
+  errEl.style.display='none';
+  if(!url||!code){errEl.textContent='Rellena ambos campos.';errEl.style.display='block';return}
+  API_BASE=url; API_CODE=code;
+  localStorage.setItem(SK_URL,url); localStorage.setItem(SK_CODE,code);
+  showTypeScreen();
+});
+
+// ---- Info de sesión (botón ⓘ) ----
+function mostrarInfoSesion(sesionTipo){
+  const overlay=document.getElementById('info-overlay');
+  const content=document.getElementById('info-sheet-content');
+  document.getElementById('info-sheet-title').textContent=sesionTipo;
+  overlay.style.display='flex';
+
+  const sesion=sesionesCache.find(s=>s.sesion_tipo===sesionTipo);
+  if(sesion&&sesion.ejercicios&&sesion.ejercicios.length){
+    const ejerciciosOrdenados=[...sesion.ejercicios].sort((a,b)=>(a.orden||0)-(b.orden||0));
+    document.getElementById('info-sheet-sub').textContent=`${ejerciciosOrdenados.length} ejercicios`;
+    content.innerHTML=ejerciciosOrdenados.map(ex=>`
+      <div class="info-ex-row">
+        <div>
+          <div class="info-ex-name">${escapeHtml(ex.nombre||'Ejercicio')}</div>
+          <div class="info-ex-tipo">${ex.tipo||'—'}</div>
+        </div>
+        <div class="info-ex-meta">${ex.series||'—'}×${ex.reps||'—'}</div>
+      </div>`).join('');
+  } else {
+    document.getElementById('info-sheet-sub').textContent='';
+    content.innerHTML=`<div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando ejercicios...</div>`;
+    apiCall('/sesiones').then(data=>{
+      sesionesCache=data.sesiones||[];
+      mostrarInfoSesion(sesionTipo);
+    }).catch(()=>{
+      content.innerHTML=`<div class="error-state">No se pudieron cargar los ejercicios</div>`;
+    });
+  }
+}
+function cerrarInfo(e){
+  if(e.target===document.getElementById('info-overlay')){
+    document.getElementById('info-overlay').style.display='none';
+  }
 }
 
-async function abrirDetalleProgreso(bibliotecaId, nombre) {
-  const overlay = document.getElementById('detail-overlay');
-  const content = document.getElementById('detail-content');
-  document.getElementById('detail-title').textContent = nombre;
-  overlay.style.display = 'block';
-  content.innerHTML = `<div class="loading-state"><div class="spinner"></div>Cargando historial...</div>`;
-
-  try {
-    const data = await apiCall(`/progreso?biblioteca_id=${encodeURIComponent(bibliotecaId)}&limite=15`);
-    if (!data.historial || !data.historial.length) {
-      content.innerHTML = `<div class="empty-state">Sin registros todavía para este ejercicio.</div>`;
+// ---- Gestión de sesiones en ajustes ----
+async function cargarGestionSesiones(){
+  const list=document.getElementById('sesiones-mgmt-list');
+  list.innerHTML=`<div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando...</div>`;
+  try{
+    const data=await apiCall('/sesiones');
+    sesionesCache=data.sesiones||[];
+    if(!sesionesCache.length){
+      list.innerHTML=`<div style="font-size:13px;color:var(--txt3);padding:.5rem 0">No hay sesiones en el Programa Activo</div>`;
       return;
     }
-
-    const progresoLine = data.progreso_kg_en_periodo != null
-      ? `<div class="hist-note" style="margin-bottom:1rem;font-size:13px;">Progreso en el periodo: <strong style="color:var(--done)">${data.progreso_kg_en_periodo > 0 ? '+' : ''}${data.progreso_kg_en_periodo}kg</strong> en ${data.sesiones_consideradas} sesiones</div>`
-      : '';
-
-    const rows = data.historial.map((r, i) => `
-      <tr>
-        <td class="mono">${data.historial.length - i}</td>
-        <td>${r.peso ?? '–'} kg</td>
-        <td>${r.reps ?? '–'}</td>
-        <td class="rpe-cell">${r.rpe ?? '–'}</td>
-      </tr>
-    `).join('');
-
-    content.innerHTML = `
-      ${progresoLine}
-      <table class="hist-table">
-        <thead><tr><th>#</th><th>Peso</th><th>Reps</th><th>RPE</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-  } catch (err) {
-    content.innerHTML = `<div class="error-state">Error al cargar historial: ${escapeHtml(err.message)}</div>`;
+    list.innerHTML=sesionesCache.map(s=>`
+      <div class="sesion-row">
+        <div>
+          <div class="sesion-row-name">${escapeHtml(s.sesion_tipo)}</div>
+          <div class="sesion-row-sub">${s.ejercicios?s.ejercicios.length:0} ejercicios</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="info-btn" onclick="mostrarInfoSesion('${escapeHtml(s.sesion_tipo)}')" title="Ver ejercicios">ⓘ</button>
+          <label class="toggle-btn">
+            <input type="checkbox" ${s.activo?'checked':''} onchange="toggleSesion('${escapeHtml(s.sesion_tipo)}',this.checked,this)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>`).join('');
+  }catch(err){
+    list.innerHTML=`<div class="error-state" style="padding:.5rem 0">Error al cargar sesiones</div>`;
+  }
+}
+async function toggleSesion(sesionTipo, activo, checkboxEl){
+  checkboxEl.disabled=true;
+  try{
+    await apiCall('/sesiones_toggle',{method:'POST',body:JSON.stringify({sesion_tipo:sesionTipo,activo})});
+    showToast(activo?`${sesionTipo} activada`:`${sesionTipo} desactivada`);
+    await cargarGestionSesiones();
+  }catch(err){
+    showToast('Error: '+err.message,true);
+    checkboxEl.checked=!activo;
+    checkboxEl.disabled=false;
   }
 }
 
-document.getElementById('btn-close-detail').addEventListener('click', () => {
-  document.getElementById('detail-overlay').style.display = 'none';
-});
-
-document.getElementById('btn-analyze').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-analyze');
-  const content = document.getElementById('ai-content');
-  btn.disabled = true;
-  btn.textContent = 'Pensando...';
-  content.textContent = 'Generando análisis con IA — puede tardar unos segundos...';
-  content.className = 'ai-placeholder';
-
-  try {
-    const data = await apiCall('/analisis_progreso');
-    content.textContent = data.analisis;
-    content.className = 'ai-text';
-  } catch (err) {
-    content.textContent = 'Error al generar el análisis: ' + err.message;
-    content.className = 'ai-placeholder';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Regenerar';
+// ---- Init ----
+(function init(){
+  if(!loadCreds()){showSetup();return}
+  const p=loadProgress();
+  if(p){
+    selectedType=p.selected_type||'gym';
+    selectedSesionTipo=p.sesion_tipo||'Full Body A';
+    const cached=getCachedSession(selectedSesionTipo);
+    if(cached){
+      sesionData=cached;
+      estadoEjercicios=p.estado||sesionData.ejercicios.map(ex=>({seriesDone:[],pesoActual:ex.peso_recomendado||0,rpeReal:null}));
+      showApp();
+      renderPendingBanner(sesionData.asistencia_pendiente_confirmar||[]);
+      document.getElementById('session-label-top').textContent=selectedSesionTipo;
+      const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      const hoy=new Date();
+      document.getElementById('today-label').textContent=`${dias[hoy.getDay()]} · ${hoy.toLocaleDateString('es-ES')}`;
+      document.getElementById('session-notes').value=p.notas||'';
+      document.getElementById('resume-banner').style.display='block';
+      document.getElementById('session-footer').style.display='block';
+      renderEjercicios();
+      return;
+    }
   }
-});
-
-// ---------- Init ----------
-(function init() {
-  if (loadStoredCredentials()) {
-    showApp('hoy');
-    cargarSesion();
-  } else {
-    showSetup();
-  }
+  showTypeScreen();
 })();
 </script>
 </body>
