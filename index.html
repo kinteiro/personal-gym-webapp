@@ -993,16 +993,16 @@ function marcarTodo(){
 }
 
 // ---- Info de ejercicio (notas técnicas de Biblioteca) ----
-const ejercicioNotasCache={};
 async function mostrarInfoEjercicio(bibliotecaId, nombre){
   const overlay=document.getElementById('info-overlay');
   const content=document.getElementById('info-sheet-content');
   document.getElementById('info-sheet-title').textContent=nombre;
-  document.getElementById('info-sheet-sub').textContent='Técnica y notas';
+  document.getElementById('info-sheet-sub').textContent='Cargando...';
   overlay.style.display='flex';
 
   if(ejercicioNotasCache[bibliotecaId]!==undefined){
-    content.innerHTML=ejercicioNotasCache[bibliotecaId]||`<div class="ai-placeholder">Sin notas de técnica para este ejercicio</div>`;
+    content.innerHTML=ejercicioNotasCache[bibliotecaId];
+    document.getElementById('info-sheet-sub').textContent='Técnica y descripción';
     return;
   }
 
@@ -1010,14 +1010,41 @@ async function mostrarInfoEjercicio(bibliotecaId, nombre){
 
   try{
     const data=await apiCall(`/info_ejercicio?biblioteca_id=${encodeURIComponent(bibliotecaId)}`);
-    const notas=data.notas||'';
-    const html=notas
-      ?`<p style="font-size:14px;line-height:1.6;color:var(--txt)">${escapeHtml(notas).replace(/\n/g,'<br>')}</p>`
-      :`<div class="ai-placeholder">Sin notas de técnica para este ejercicio</div>`;
+    document.getElementById('info-sheet-sub').textContent='Técnica y descripción';
+
+    let html='';
+
+    // Imagen si existe
+    if(data.url_imagen){
+      html+=`<img src="${escapeHtml(data.url_imagen)}" alt="${escapeHtml(data.ejercicio)}" 
+        style="width:100%;border-radius:10px;margin-bottom:1rem;max-height:200px;object-fit:cover;"
+        onerror="this.style.display='none'">`;
+    }
+
+    // Descripción
+    if(data.descripcion){
+      html+=`<div style="margin-bottom:1rem">
+        <div style="font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Descripción</div>
+        <p style="font-size:14px;line-height:1.6;color:var(--txt)">${escapeHtml(data.descripcion).replace(/\n/g,'<br>')}</p>
+      </div>`;
+    }
+
+    // Notas personales
+    if(data.notas){
+      html+=`<div>
+        <div style="font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Notas</div>
+        <p style="font-size:13px;line-height:1.55;color:var(--txt2)">${escapeHtml(data.notas).replace(/\n/g,'<br>')}</p>
+      </div>`;
+    }
+
+    if(!html){
+      html=`<div class="ai-placeholder">Sin información disponible para este ejercicio</div>`;
+    }
+
     ejercicioNotasCache[bibliotecaId]=html;
     content.innerHTML=html;
   }catch(err){
-    content.innerHTML=`<div class="error-state">Error al cargar notas: ${escapeHtml(err.message)}</div>`;
+    content.innerHTML=`<div class="error-state">Error al cargar: ${escapeHtml(err.message)}</div>`;
   }
 }
 
