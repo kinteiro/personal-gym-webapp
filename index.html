@@ -287,7 +287,23 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
     <div class="loading-state"><div class="spinner"></div>Cargando sesión...</div>
   </div>
   <div class="session-footer" id="session-footer" style="display:none">
-    <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas (sueño, energía, cómo fue)..."></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.9rem">
+      <div>
+        <div style="font-size:11px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Energía</div>
+        <div style="display:flex;gap:4px" id="energia-btns">
+          ${[1,2,3,4,5].map(n=>`<button onclick="setEnergia(${n})" id="e-btn-${n}" style="flex:1;padding:8px 0;border-radius:7px;border:1px solid var(--border);background:var(--bg-el);color:var(--txt2);font-size:12px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:600">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Estrés</div>
+        <div style="display:flex;gap:4px">
+          <button onclick="setEstres('Bajo')" id="s-btn-bajo" style="flex:1;padding:8px 0;border-radius:7px;border:1px solid var(--border);background:var(--bg-el);color:var(--txt2);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:600">Bajo</button>
+          <button onclick="setEstres('Medio')" id="s-btn-medio" style="flex:1;padding:8px 0;border-radius:7px;border:1px solid var(--border);background:var(--bg-el);color:var(--txt2);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:600">Medio</button>
+          <button onclick="setEstres('Alto')" id="s-btn-alto" style="flex:1;padding:8px 0;border-radius:7px;border:1px solid var(--border);background:var(--bg-el);color:var(--txt2);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-weight:600">Alto</button>
+        </div>
+      </div>
+    </div>
+    <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas (cómo fue, algo a destacar)..."></textarea>
     <button class="btn-primary" id="btn-save" disabled>Guardar sesión completa</button>
     <button class="btn-secondary" onclick="marcarTodo()" style="width:100%;background:var(--bg-card);color:var(--txt2);border:1px solid var(--border);border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;margin-top:.6rem">Marcar todo como completado</button>
     <button class="btn-danger" id="btn-reset" onclick="confirmarDescartar()">Descartar y empezar de nuevo</button>
@@ -380,6 +396,7 @@ const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
 let API_BASE='', API_CODE='';
 let sesionData=null, estadoEjercicios=[], selectedType=null, selectedSesionTipo=null;
 let progressListLoaded=false, sesionesCache=[];
+let selectedEnergia=null, selectedEstres=null;
 
 // ---- Credenciales ----
 function loadCreds(){
@@ -653,6 +670,8 @@ function descartarSesion(){
   estadoEjercicios=sesionData.ejercicios.map(ex=>({seriesDone:[],pesoActual:ex.peso_recomendado||0,rpeReal:null}));
   document.getElementById('session-notes').value='';
   document.getElementById('resume-banner').style.display='none';
+  selectedEnergia=null; selectedEstres=null;
+  setEnergia(null); setEstres(null);
   renderEjercicios();
 }
 function confirmarDescartar(){
@@ -753,6 +772,8 @@ document.getElementById('btn-save').addEventListener('click',async()=>{
     fecha:new Date().toISOString().slice(0,10),
     tipo:tipoSesion,
     notas:document.getElementById('session-notes').value,
+    energia:selectedEnergia,
+    estres:selectedEstres,
     asistio:true, ejercicios,
   };
   try{
@@ -994,6 +1015,30 @@ async function mostrarInfoEjercicio(bibliotecaId, nombre){
   }catch(err){
     content.innerHTML=`<div class="error-state">Error al cargar notas: ${escapeHtml(err.message)}</div>`;
   }
+}
+
+// ---- Energía y Estrés ----
+function setEnergia(n){
+  selectedEnergia=selectedEnergia===n?null:n;
+  [1,2,3,4,5].forEach(i=>{
+    const btn=document.getElementById(`e-btn-${i}`);
+    if(!btn) return;
+    const sel=selectedEnergia===i;
+    btn.style.background=sel?'var(--acc-bg)':'var(--bg-el)';
+    btn.style.borderColor=sel?'var(--acc-dim)':'var(--border)';
+    btn.style.color=sel?'var(--acc)':'var(--txt2)';
+  });
+}
+function setEstres(v){
+  selectedEstres=selectedEstres===v?null:v;
+  ['Bajo','Medio','Alto'].forEach(s=>{
+    const btn=document.getElementById(`s-btn-${s.toLowerCase()}`);
+    if(!btn) return;
+    const sel=selectedEstres===s;
+    btn.style.background=sel?'var(--acc-bg)':'var(--bg-el)';
+    btn.style.borderColor=sel?'var(--acc-dim)':'var(--border)';
+    btn.style.color=sel?'var(--acc)':'var(--txt2)';
+  });
 }
 
 // ---- Init ----
