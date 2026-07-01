@@ -202,8 +202,11 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
   <button class="btn-primary" id="btn-connect">Conectar y cargar sesión</button>
   <div class="setup-error" id="setup-error"></div>
   <div class="sesiones-mgmt" id="sesiones-mgmt" style="display:none">
-    <div class="sesiones-mgmt-title">Programa activo — Sesiones</div>
-    <div id="sesiones-mgmt-list"><div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando...</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div class="sesiones-mgmt-title">Gestión de plantillas</div>
+      <button onclick="cargarGestionSesiones()" style="background:var(--bg-el);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--txt2);cursor:pointer;font-family:'IBM Plex Mono',monospace">Cargar</button>
+    </div>
+    <div id="sesiones-mgmt-list" style="color:var(--txt3);font-size:13px;font-family:'IBM Plex Mono',monospace">Pulsa "Cargar" para ver las plantillas disponibles</div>
   </div>
 </div>
 
@@ -286,6 +289,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
   <div class="session-footer" id="session-footer" style="display:none">
     <textarea class="notes-area" id="session-notes" rows="2" placeholder="Notas (sueño, energía, cómo fue)..."></textarea>
     <button class="btn-primary" id="btn-save" disabled>Guardar sesión completa</button>
+    <button class="btn-secondary" onclick="marcarTodo()" style="width:100%;background:var(--bg-card);color:var(--txt2);border:1px solid var(--border);border-radius:10px;padding:13px;font-size:14px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;margin-top:.6rem">Marcar todo como completado</button>
     <button class="btn-danger" id="btn-reset" onclick="confirmarDescartar()">Descartar y empezar de nuevo</button>
   </div>
 </div>
@@ -443,7 +447,7 @@ function showSetup(opts={}){
   const mgmt=document.getElementById('sesiones-mgmt');
   if(hasCredentials){
     mgmt.style.display='block';
-    cargarGestionSesiones();
+    // No carga automáticamente — el usuario pulsa "Cargar" cuando quiere
   } else {
     mgmt.style.display='none';
   }
@@ -705,7 +709,13 @@ function renderEjercicios(){
       ?`<div class="hist-note">Última: ${ex.historial_reciente[0].peso}kg × ${ex.historial_reciente[0].reps} @ RPE ${ex.historial_reciente[0].rpe??'–'}</div>`
       :`<div class="hist-note">Sin historial todavía</div>`;
     return `<div class="ex-card ${isDone?'done':''}">
-      <div class="ex-top"><div><div class="ex-name">${escapeHtml(ex.ejercicio)}</div><div class="ex-tipo">${ex.tipo}</div></div>${isDone?'<span class="done-check">✓</span>':''}</div>
+      <div class="ex-top">
+        <div><div class="ex-name">${escapeHtml(ex.ejercicio)}</div><div class="ex-tipo">${ex.tipo}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="info-btn" onclick="mostrarInfoEjercicio('${ex.biblioteca_id}','${escapeHtml(ex.ejercicio)}')" title="Ver técnica">ⓘ</button>
+          ${isDone?'<span class="done-check">✓</span>':''}
+        </div>
+      </div>
       <div class="ex-meta"><span class="pill pill-base">${ex.series}×${ex.reps}</span><span class="pill ${pillClass}">${ex.cambio}</span><span class="pill pill-base">RPE obj. ${ex.rpe_objetivo}</span></div>
       <div class="weight-row"><button onclick="ajustarPeso(${i},-${inc})">−</button><div class="weight-display">${s.pesoActual} kg</div><button onclick="ajustarPeso(${i},${inc})">+</button></div>
       <div class="series-grid">${serieBtns}</div>
@@ -943,6 +953,46 @@ async function toggleSesion(sesionTipo, activo, checkboxEl){
     showToast('Error: '+err.message,true);
     checkboxEl.checked=!activo;
     checkboxEl.disabled=false;
+  }
+}
+
+// ---- Marcar todo completado ----
+function marcarTodo(){
+  if(!sesionData) return;
+  sesionData.ejercicios.forEach((_,i)=>{
+    const n=sesionData.ejercicios[i].series;
+    estadoEjercicios[i].seriesDone=Array.from({length:n},(_,si)=>si);
+  });
+  saveProgress(); renderEjercicios();
+  showToast('Todas las series marcadas como completadas');
+}
+
+// ---- Info de ejercicio (notas técnicas de Biblioteca) ----
+const ejercicioNotasCache={};
+async function mostrarInfoEjercicio(bibliotecaId, nombre){
+  const overlay=document.getElementById('info-overlay');
+  const content=document.getElementById('info-sheet-content');
+  document.getElementById('info-sheet-title').textContent=nombre;
+  document.getElementById('info-sheet-sub').textContent='Técnica y notas';
+  overlay.style.display='flex';
+
+  if(ejercicioNotasCache[bibliotecaId]!==undefined){
+    content.innerHTML=ejercicioNotasCache[bibliotecaId]||`<div class="ai-placeholder">Sin notas de técnica para este ejercicio</div>`;
+    return;
+  }
+
+  content.innerHTML=`<div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando...</div>`;
+
+  try{
+    const data=await apiCall(`/info_ejercicio?biblioteca_id=${encodeURIComponent(bibliotecaId)}`);
+    const notas=data.notas||'';
+    const html=notas
+      ?`<p style="font-size:14px;line-height:1.6;color:var(--txt)">${escapeHtml(notas).replace(/\n/g,'<br>')}</p>`
+      :`<div class="ai-placeholder">Sin notas de técnica para este ejercicio</div>`;
+    ejercicioNotasCache[bibliotecaId]=html;
+    content.innerHTML=html;
+  }catch(err){
+    content.innerHTML=`<div class="error-state">Error al cargar notas: ${escapeHtml(err.message)}</div>`;
   }
 }
 
