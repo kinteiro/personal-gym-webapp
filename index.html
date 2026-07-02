@@ -360,18 +360,21 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
   </div>
 
   <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.25rem">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2)">⚖ Mi peso esta semana</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="peso-corporal-display" style="font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--txt3)">—</div>
-        <button onclick="editarPeso()" style="background:none;border:none;color:var(--txt3);font-size:12px;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-decoration:underline">editar</button>
-      </div>
-    </div>
+    <div style="font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">⚖ Mi peso esta semana</div>
+    <div id="peso-corporal-display" style="font-size:22px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--txt3);margin-bottom:4px">—</div>
+    <div id="peso-corporal-fecha" style="font-size:11px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:12px"></div>
     <div id="peso-corporal-input-row" style="display:flex;gap:8px;align-items:center">
       <input type="number" id="input-peso-corporal" step="0.1" min="30" max="200"
         placeholder="78.5" style="flex:1;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:15px;font-family:'IBM Plex Mono',monospace">
       <button onclick="guardarPesoCorporal()" style="background:var(--acc);color:#0E1110;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Space Grotesk',sans-serif">Guardar</button>
     </div>
+    <button id="btn-editar-peso" onclick="editarPeso()" style="display:none;background:none;border:none;color:var(--txt3);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-decoration:underline;margin-top:6px;padding:0">editar</button>
+  </div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.25rem">
+    <div style="font-size:10px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Evolución de peso</div>
+    <div id="peso-historial" style="font-size:13px;color:var(--txt3);font-family:'IBM Plex Mono',monospace">Cargando...</div>
+  </div>
   </div>
   <div id="progress-list-area">
     <div class="loading-state"><div class="spinner"></div>Cargando ejercicios...</div>
@@ -1006,22 +1009,47 @@ async function toggleSesion(sesionTipo, activo, checkboxEl){
 let pesoCorporalData = null;
 async function cargarPesoCorporal(){
   const display = document.getElementById('peso-corporal-display');
+  const fechaEl = document.getElementById('peso-corporal-fecha');
   const inputRow = document.getElementById('peso-corporal-input-row');
+  const btnEditar = document.getElementById('btn-editar-peso');
   if(!display) return;
   try{
     pesoCorporalData = await apiCall('/peso_corporal');
     if(pesoCorporalData.peso !== null && pesoCorporalData.peso > 0){
-      display.textContent = `${pesoCorporalData.peso} kg — ${pesoCorporalData.fecha}`;
+      display.textContent = `${pesoCorporalData.peso} kg`;
       display.style.color = 'var(--done)';
-      document.getElementById('input-peso-corporal').value = pesoCorporalData.peso;
+      if(fechaEl) fechaEl.textContent = pesoCorporalData.fecha || '';
       if(inputRow) inputRow.style.display = 'none';
+      if(btnEditar){ btnEditar.style.display = 'block'; document.getElementById('input-peso-corporal').value = pesoCorporalData.peso; }
     } else {
-      display.textContent = 'Sin registro esta semana';
+      display.textContent = '—';
       display.style.color = 'var(--txt3)';
+      if(fechaEl) fechaEl.textContent = 'Sin registro esta semana';
       if(inputRow) inputRow.style.display = 'flex';
+      if(btnEditar) btnEditar.style.display = 'none';
     }
   }catch(err){
-    display.textContent = 'Error al cargar';
+    display.textContent = 'Error';
+  }
+  cargarHistorialPeso();
+}
+
+async function cargarHistorialPeso(){
+  const el = document.getElementById('peso-historial');
+  if(!el) return;
+  try{
+    const data = await apiCall('/peso_corporal_historial?limite=6');
+    if(!data.registros || !data.registros.length){
+      el.textContent = 'Sin registros anteriores';
+      return;
+    }
+    el.innerHTML = data.registros.map(r=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+        <span style="color:var(--txt2)">${r.semana}</span>
+        <span style="color:${r.peso?'var(--txt)':'var(--txt3)'}">${r.peso ? r.peso + ' kg' : '—'}</span>
+      </div>`).join('');
+  }catch(err){
+    el.textContent = '—';
   }
 }
 function editarPeso(){
