@@ -208,6 +208,13 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
     </div>
     <div id="sesiones-mgmt-list" style="color:var(--txt3);font-size:13px;font-family:'IBM Plex Mono',monospace">Pulsa "Cargar" para ver las plantillas disponibles</div>
   </div>
+
+  <div style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1.25rem">
+    <div class="sesiones-mgmt-title">Recetas</div>
+    <div style="font-size:12px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:.75rem">Analiza la última receta añadida a Notion y estima sus calorías por ración</div>
+    <button onclick="analizarReceta()" id="btn-analizar-receta" style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'IBM Plex Mono',monospace">✦ Analizar última receta</button>
+    <div id="receta-resultado" style="margin-top:.75rem;font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--txt3)"></div>
+  </div>
 </div>
 
 <!-- TYPE SELECTION -->
@@ -1059,6 +1066,24 @@ async function toggleSesion(sesionTipo, activo, checkboxEl){
     showToast('Error: '+err.message,true);
     checkboxEl.checked=!activo;
     checkboxEl.disabled=false;
+  }
+}
+
+// ---- Analizar receta ----
+async function analizarReceta(){
+  const btn = document.getElementById('btn-analizar-receta');
+  const resultado = document.getElementById('receta-resultado');
+  btn.disabled = true;
+  btn.textContent = 'Analizando...';
+  resultado.textContent = '';
+  try{
+    const data = await apiCall('/analizar_receta', {method:'POST', body:'{}'});
+    resultado.innerHTML = `<span style="color:var(--done)">✓ ${escapeHtml(data.receta)}</span><br><span style="color:var(--txt)">${data.kcal_estimadas} kcal / ración</span>${data.kcal_anterior?`<br><span style="color:var(--txt3)">Antes: ${data.kcal_anterior} kcal</span>`:''}`;
+  }catch(err){
+    resultado.textContent = 'Error: ' + err.message;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '✦ Analizar última receta';
   }
 }
 
