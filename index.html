@@ -191,7 +191,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
   <h1>Conecta tu backend para empezar</h1>
   <div class="field-group">
     <label>URL base de la function app</label>
-    <input type="text" id="input-base-url" placeholder="https://personalgymtoolsdmq.azurewebsites.net/api">
+    <input type="text" id="input-base-url" placeholder="https://xxx.azurewebsites.net/api">
     <div class="hint">Sin barra al final</div>
   </div>
   <div class="field-group">
@@ -753,6 +753,7 @@ function renderEjercicios(){
     const esKg = metrica === 'Peso (kg)';
     const esReps = metrica === 'Reps';
     const esTiempo = metrica === 'Tiempo (s)';
+    const isComp = ex.tipo === 'Compuesto';
     const inc = esKg ? (isComp ? 2.5 : 1.25) : esReps ? 2 : 5;
     const unidad = esKg ? 'kg' : esReps ? 'reps' : 's';
     const valorDisplay = `${s.pesoActual} ${unidad}`;
