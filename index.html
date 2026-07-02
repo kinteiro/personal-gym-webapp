@@ -401,6 +401,7 @@ let API_BASE='', API_CODE='';
 let sesionData=null, estadoEjercicios=[], selectedType=null, selectedSesionTipo=null;
 let progressListLoaded=false, sesionesCache=[];
 let selectedEnergia=null, selectedEstres=null;
+const ejercicioNotasCache={};
 
 // ---- Credenciales ----
 function loadCreds(){
@@ -1009,7 +1010,10 @@ async function mostrarInfoEjercicio(bibliotecaId, nombre){
   content.innerHTML=`<div class="loading-state" style="padding:1rem 0"><div class="spinner" style="width:20px;height:20px;margin:0 auto .5rem"></div>Cargando...</div>`;
 
   try{
-    const data=await apiCall(`/info_ejercicio?biblioteca_id=${encodeURIComponent(bibliotecaId)}`);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+    const data=await apiCall(`/info_ejercicio?biblioteca_id=${encodeURIComponent(bibliotecaId)}`,{signal:controller.signal});
+    clearTimeout(timeout);
     document.getElementById('info-sheet-sub').textContent='Técnica y descripción';
 
     let html='';
@@ -1017,7 +1021,7 @@ async function mostrarInfoEjercicio(bibliotecaId, nombre){
     // Imagen si existe
     if(data.url_imagen){
       html+=`<img src="${escapeHtml(data.url_imagen)}" alt="${escapeHtml(data.ejercicio)}" 
-        style="width:100%;border-radius:10px;margin-bottom:1rem;max-height:200px;object-fit:cover;"
+        style="width:100%;border-radius:10px;margin-bottom:1rem;max-height:220px;object-fit:contain;background:var(--bg-el);"
         onerror="this.style.display='none'">`;
     }
 
@@ -1044,7 +1048,9 @@ async function mostrarInfoEjercicio(bibliotecaId, nombre){
     ejercicioNotasCache[bibliotecaId]=html;
     content.innerHTML=html;
   }catch(err){
-    content.innerHTML=`<div class="error-state">Error al cargar: ${escapeHtml(err.message)}</div>`;
+    const msg=err.name==='AbortError'?'Tiempo de espera agotado — comprueba la conexión':err.message;
+    content.innerHTML=`<div class="error-state" style="font-size:13px">Error al cargar: ${escapeHtml(msg)}</div>`;
+    document.getElementById('info-sheet-sub').textContent='Error';
   }
 }
 
