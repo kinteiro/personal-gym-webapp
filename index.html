@@ -213,6 +213,22 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
       <div style="font-size:12px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:.75rem">Analiza la última receta añadida a Notion y estima sus calorías por ración</div>
       <button onclick="analizarReceta()" id="btn-analizar-receta" style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'IBM Plex Mono',monospace">✦ Analizar última receta</button>
       <div id="receta-resultado" style="margin-top:.75rem;font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--txt3)"></div>
+
+    <div style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1.25rem">
+      <div class="sesiones-mgmt-title">Diseñar programa</div>
+      <div style="font-size:12px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:.75rem">Describe qué tipo de sesión quieres y la IA propone una plantilla con ejercicios de tu biblioteca</div>
+      <input type="text" id="input-nombre-plantilla" placeholder="Nombre (ej. Full Body C)"
+        style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:13px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px;box-sizing:border-box">
+      <textarea id="input-descripcion-programa" rows="3" placeholder="Ej: quiero un programa de gym centrado en polea y máquinas, full body, 45 minutos"
+        style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:13px;font-family:'IBM Plex Mono',monospace;resize:none;box-sizing:border-box;margin-bottom:8px"></textarea>
+      <select id="input-ubicacion-programa" style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:13px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px;box-sizing:border-box">
+        <option value="Gym">Gym</option>
+        <option value="Casa">Casa</option>
+        <option value="Ambos">Ambos</option>
+      </select>
+      <button onclick="proponerPrograma()" id="btn-proponer" style="width:100%;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:'IBM Plex Mono',monospace">✦ Proponer programa</button>
+      <div id="propuesta-resultado" style="margin-top:.75rem"></div>
+    </div>
     </div>
   </div>
 </div>
@@ -1066,6 +1082,85 @@ async function toggleSesion(sesionTipo, activo, checkboxEl){
     showToast('Error: '+err.message,true);
     checkboxEl.checked=!activo;
     checkboxEl.disabled=false;
+  }
+}
+
+// ---- Diseñar programa con IA ----
+let propuestaActual = null;
+
+async function proponerPrograma(){
+  const descripcion = document.getElementById('input-descripcion-programa').value.trim();
+  const nombre = document.getElementById('input-nombre-plantilla').value.trim();
+  const ubicacion = document.getElementById('input-ubicacion-programa').value;
+  const btn = document.getElementById('btn-proponer');
+  const resultado = document.getElementById('propuesta-resultado');
+
+  if(!descripcion){
+    showToast('Escribe una descripción primero', true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Generando propuesta...';
+  resultado.innerHTML = `<div class="loading-state" style="padding:.75rem 0"><div class="spinner" style="width:18px;height:18px;margin:0 auto .5rem"></div>Claude está diseñando tu programa...</div>`;
+
+  try{
+    propuestaActual = await apiCall('/proponer_programa', {
+      method: 'POST',
+      body: JSON.stringify({
+        descripcion,
+        nombre_plantilla: nombre || 'Nueva Plantilla',
+        ubicacion,
+      })
+    });
+
+    const nuevos = propuestaActual.ejercicios.filter(e => e.nuevo);
+    const existentes = propuestaActual.ejercicios.filter(e => !e.nuevo);
+
+    resultado.innerHTML = `
+      <div style="background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem">
+        <div style="font-size:12px;color:var(--acc);font-family:'IBM Plex Mono',monospace;font-weight:600;margin-bottom:6px">✦ ${escapeHtml(propuestaActual.nombre_plantilla)} — ${escapeHtml(propuestaActual.ubicacion)}</div>
+        <div style="font-size:11px;color:var(--txt3);font-family:'IBM Plex Mono',monospace;margin-bottom:10px">${escapeHtml(propuestaActual.descripcion)}</div>
+        ${propuestaActual.ejercicios.map((ex,i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;font-family:'IBM Plex Mono',monospace">
+            <span style="color:${ex.nuevo?'var(--warn)':'var(--txt)'}">
+              ${ex.orden}. ${escapeHtml(ex.nombre)}${ex.nuevo?' ✦ nuevo':''}
+            </span>
+            <span style="color:var(--txt3)">${ex.series}×${escapeHtml(ex.reps_objetivo)} RPE${ex.rpe_objetivo}</span>
+          </div>`).join('')}
+        ${nuevos.length ? `<div style="font-size:11px;color:var(--warn);font-family:'IBM Plex Mono',monospace;margin-top:8px">✦ ${nuevos.length} ejercicio${nuevos.length>1?'s':''} nuevo${nuevos.length>1?'s':''} se añadirá${nuevos.length>1?'n':''} a tu Biblioteca</div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmarPrograma()" style="flex:1;background:var(--acc);color:#0E1110;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif">Crear en Notion</button>
+        <button onclick="document.getElementById('propuesta-resultado').innerHTML=''" style="background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--txt2);cursor:pointer;font-family:'IBM Plex Mono',monospace">✕</button>
+      </div>`;
+  }catch(err){
+    resultado.innerHTML = `<div class="error-state">Error al generar: ${escapeHtml(err.message)}</div>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '✦ Proponer programa';
+  }
+}
+
+async function confirmarPrograma(){
+  if(!propuestaActual) return;
+  const resultado = document.getElementById('propuesta-resultado');
+  resultado.innerHTML = `<div class="loading-state" style="padding:.75rem 0"><div class="spinner" style="width:18px;height:18px;margin:0 auto .5rem"></div>Creando en Notion...</div>`;
+  try{
+    const data = await apiCall('/confirmar_programa', {
+      method: 'POST',
+      body: JSON.stringify(propuestaActual)
+    });
+    resultado.innerHTML = `<div style="background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:1rem;font-family:'IBM Plex Mono',monospace;font-size:12px">
+      <div style="color:var(--done);font-weight:600;margin-bottom:6px">✓ Plantilla creada en Notion</div>
+      <div style="color:var(--txt2)">${escapeHtml(data.nombre_plantilla)} — ${data.total_ejercicios} ejercicios</div>
+      ${data.ejercicios_nuevos_en_biblioteca.length ? `<div style="color:var(--warn);margin-top:4px">✦ Nuevos en Biblioteca: ${data.ejercicios_nuevos_en_biblioteca.map(e=>escapeHtml(e)).join(', ')}</div>` : ''}
+    </div>`;
+    propuestaActual = null;
+    document.getElementById('input-descripcion-programa').value = '';
+    document.getElementById('input-nombre-plantilla').value = '';
+  }catch(err){
+    resultado.innerHTML = `<div class="error-state">Error al crear: ${escapeHtml(err.message)}</div>`;
   }
 }
 
