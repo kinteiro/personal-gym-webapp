@@ -358,6 +358,18 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
     </div>
     <div class="ai-placeholder" id="ai-content">Pulsa "Generar" para un resumen de tu progreso reciente. Hazlo cada 2-4 semanas.</div>
   </div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2)">⚖ Mi peso esta semana</div>
+      <div id="peso-corporal-display" style="font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--txt3)">—</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" id="input-peso-corporal" step="0.1" min="30" max="200"
+        placeholder="78.5" style="flex:1;background:var(--bg-el);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--txt);font-size:15px;font-family:'IBM Plex Mono',monospace">
+      <button onclick="guardarPesoCorporal()" style="background:var(--acc);color:#0E1110;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Space Grotesk',sans-serif">Guardar</button>
+    </div>
+  </div>
   <div id="progress-list-area">
     <div class="loading-state"><div class="spinner"></div>Cargando ejercicios...</div>
   </div>
@@ -469,7 +481,6 @@ function showSetup(opts={}){
   const mgmt=document.getElementById('sesiones-mgmt');
   if(hasCredentials){
     mgmt.style.display='block';
-    // No carga automáticamente — el usuario pulsa "Cargar" cuando quiere
   } else {
     mgmt.style.display='none';
   }
@@ -521,6 +532,7 @@ function showProgressTab(){
   document.getElementById('bottom-nav').style.display='flex';
   setNavActive('progreso');
   if(!progressListLoaded) cargarListaProgreso();
+  cargarPesoCorporal();
 }
 function setNavActive(tab){
   document.getElementById('nav-hoy').classList.toggle('active',tab==='hoy');
@@ -721,8 +733,13 @@ function renderEjercicios(){
   container.innerHTML=ejercicios.map((ex,i)=>{
     const s=estadoEjercicios[i];
     const isDone=s.seriesDone.length>=ex.series;
-    const isComp=ex.tipo==='Compuesto';
-    const inc=isComp?2.5:1.25;
+    const metrica = ex.metrica || 'Peso (kg)';
+    const esKg = metrica === 'Peso (kg)';
+    const esReps = metrica === 'Reps';
+    const esTiempo = metrica === 'Tiempo (s)';
+    const inc = esKg ? (isComp ? 2.5 : 1.25) : esReps ? 2 : 5;
+    const unidad = esKg ? 'kg' : esReps ? 'reps' : 's';
+    const valorDisplay = `${s.pesoActual} ${unidad}`;
     const pillClass=ex.cambio&&ex.cambio.startsWith('⬆')?'pill-up':(ex.cambio==='⚠️ calibración'?'pill-warn':'pill-base');
     const serieBtns=Array.from({length:ex.series},(_,si)=>{
       const d=s.seriesDone.includes(si);
@@ -741,7 +758,7 @@ function renderEjercicios(){
         </div>
       </div>
       <div class="ex-meta"><span class="pill pill-base">${ex.series}×${ex.reps}</span><span class="pill ${pillClass}">${ex.cambio}</span><span class="pill pill-base">RPE obj. ${ex.rpe_objetivo}</span></div>
-      <div class="weight-row"><button onclick="ajustarPeso(${i},-${inc})">−</button><div class="weight-display">${s.pesoActual} kg</div><button onclick="ajustarPeso(${i},${inc})">+</button></div>
+      <div class="weight-row"><button onclick="ajustarPeso(${i},-${inc})">−</button><div class="weight-display">${valorDisplay}</div><button onclick="ajustarPeso(${i},${inc})">+</button></div>
       <div class="series-grid">${serieBtns}</div>
       <div class="rpe-row">${rpeOpts}</div>${histNote}</div>`;
   }).join('');
@@ -979,6 +996,48 @@ async function toggleSesion(sesionTipo, activo, checkboxEl){
     showToast('Error: '+err.message,true);
     checkboxEl.checked=!activo;
     checkboxEl.disabled=false;
+  }
+}
+
+// ---- Peso corporal ----
+let pesoCorporalData = null;
+async function cargarPesoCorporal(){
+  const display = document.getElementById('peso-corporal-display');
+  if(!display) return;
+  try{
+    pesoCorporalData = await apiCall('/peso_corporal');
+    if(pesoCorporalData.peso !== null){
+      display.textContent = `${pesoCorporalData.peso} kg — ${pesoCorporalData.fecha}`;
+      display.style.color = 'var(--done)';
+      document.getElementById('input-peso-corporal').value = pesoCorporalData.peso;
+    } else {
+      display.textContent = 'Sin registro esta semana';
+      display.style.color = 'var(--txt3)';
+    }
+  }catch(err){
+    display.textContent = 'Error al cargar';
+  }
+}
+async function guardarPesoCorporal(){
+  const input = document.getElementById('input-peso-corporal');
+  const peso = parseFloat(input.value);
+  if(!peso || peso < 30 || peso > 200){
+    showToast('Introduce un peso válido', true);
+    return;
+  }
+  try{
+    await apiCall('/peso_corporal', {
+      method: 'POST',
+      body: JSON.stringify({
+        peso,
+        fecha: new Date().toISOString().slice(0,10),
+        page_id: pesoCorporalData?.page_id || null,
+      })
+    });
+    showToast(`Peso guardado: ${peso} kg`);
+    await cargarPesoCorporal();
+  }catch(err){
+    showToast('Error al guardar: ' + err.message, true);
   }
 }
 
